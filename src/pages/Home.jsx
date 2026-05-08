@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { LockKeyhole, Sparkles, Store, WandSparkles, X } from 'lucide-react';
 import Footer from '../components/Footer';
 import AtelierHero from '../components/AtelierHero';
-import { useTryOn } from '../context/TryOnContext';
+import { useTryOn } from '../context/useTryOn';
 import { useAuth } from '../context/useAuth';
 import { marketplaceBrands as fallbackBrands, products as fallbackProducts, recommendedBrandPreview } from '../data/products';
 import { catalogApi } from '../lib/api';

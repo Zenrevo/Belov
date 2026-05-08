@@ -11,13 +11,13 @@ import {
   WandSparkles
 } from 'lucide-react';
 import Footer from '../components/Footer';
-import { useTryOn } from '../context/TryOnContext';
+import { useTryOn } from '../context/useTryOn';
 import { useCart } from '../context/useCart';
 import { marketplaceBrands as fallbackBrands, products as fallbackProducts } from '../data/products';
 import { catalogApi } from '../lib/api';
 import './ProductDetail.css';
 
-const formatPrice = (price) => `₹${price.toLocaleString()}`;
+const formatPrice = (price = 0) => `₹${Number(price || 0).toLocaleString('en-IN')}`;
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -55,9 +55,11 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
   const { openTryOn } = useTryOn();
   const { addToCart } = useCart();
   const brand = marketplaceBrands.find((item) => item.name === product.brand);
-  const [selectedSize, setSelectedSize] = useState(product.recommendedSize);
+  const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+  const care = Array.isArray(product.care) ? product.care : [];
+  const [selectedSize, setSelectedSize] = useState(product.recommendedSize || sizes[0] || '');
   const [addedToCart, setAddedToCart] = useState(false);
-  const [viewMode, setViewMode] = useState('model');
+  const [viewMode, setViewMode] = useState('product-0');
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -80,17 +82,30 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
     return ranked.slice(0, 4);
   }, [product, products]);
 
-  const productShots = [
-    { label: 'Model', mode: 'model', image: product.image },
-    { label: 'You', mode: 'you', image: '/images/hero.png' },
-    { label: 'Fit', mode: 'fit', image: brand?.image || product.image }
-  ];
+  const productImages = useMemo(() => {
+    const images = Array.isArray(product.images) ? product.images : [];
+    return [...images, product.image].filter(Boolean).filter((image, index, allImages) => allImages.indexOf(image) === index);
+  }, [product.image, product.images]);
+
+  const productShots = useMemo(() => {
+    const galleryShots = productImages.map((image, index) => ({
+      label: index === 0 ? 'Model' : `View ${index + 1}`,
+      mode: `product-${index}`,
+      image
+    }));
+
+    return [
+      ...galleryShots,
+      { label: 'You', mode: 'you', image: '/images/hero.png' },
+      { label: 'Fit', mode: 'fit', image: brand?.image || productImages[0] || product.image }
+    ];
+  }, [brand?.image, product.image, productImages]);
 
   const currentShot = productShots.find((shot) => shot.mode === viewMode) || productShots[0];
 
   const fitSignals = [
     { label: 'Match', value: `${product.fitMatch}%`, tone: 'gold' },
-    { label: 'Size', value: selectedSize, tone: 'teal' },
+    { label: 'Size', value: selectedSize || 'Fit check', tone: 'teal' },
     { label: 'Fabric', value: product.fabric, tone: 'rose' },
     { label: 'Occasion', value: product.occasion, tone: 'lavender' }
   ];
@@ -174,7 +189,7 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
                 <strong>{product.recommendedSize} best fit</strong>
               </div>
               <div className="pdp-size-row">
-                {product.sizes.map((size) => (
+                {sizes.map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -243,8 +258,8 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
           <div className="pdp-detail-card">
             <span className="pdp-kicker">Care</span>
             <div className="pdp-care-list">
-              {product.care.slice(0, 3).map((care) => (
-                <span key={care}>{care}</span>
+              {care.slice(0, 3).map((careItem) => (
+                <span key={careItem}>{careItem}</span>
               ))}
             </div>
           </div>

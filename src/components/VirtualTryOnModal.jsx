@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useTryOn } from '../context/TryOnContext';
+import { useTryOn } from '../context/useTryOn';
 import './VirtualTryOnModal.css';
 
 const VirtualTryOnModal = () => {
   const { isTryOnOpen, tryOnProduct, closeTryOn } = useTryOn();
   const [viewMode, setViewMode] = useState('me'); // 'me' or 'model'
   const [fitAdjustment, setFitAdjustment] = useState(50); // 0 (Tight) to 100 (Loose)
-  const [isGenerating, setIsGenerating] = useState(true);
+  const [generatedProductId, setGeneratedProductId] = useState(null);
+  const tryOnProductId = tryOnProduct?.id;
 
   useEffect(() => {
-    if (!isTryOnOpen) return undefined;
+    if (!isTryOnOpen || !tryOnProductId) return undefined;
 
-    setIsGenerating(true);
-    const timer = setTimeout(() => setIsGenerating(false), 1400);
+    const timer = setTimeout(() => setGeneratedProductId(tryOnProductId), 1400);
     return () => clearTimeout(timer);
-  }, [isTryOnOpen, tryOnProduct?.id]);
+  }, [isTryOnOpen, tryOnProductId]);
 
   if (!isTryOnOpen || !tryOnProduct) return null;
+
+  const isGenerating = generatedProductId !== tryOnProductId;
 
   const studioPhotos = [
     '/images/hero.png',

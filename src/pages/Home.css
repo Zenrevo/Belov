@@ -527,15 +527,30 @@
 
   .moment-grid,
   .live-edit-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
   }
 
   .moment-tile {
-    min-height: 250px;
+    min-height: 210px;
+  }
+
+  .home-brand-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .home-brand-chip.featured {
     grid-column: span 1;
+  }
+
+  .home-brand-chip {
+    min-height: 116px;
+    padding: var(--space-3);
+  }
+
+  .home-brand-chip strong,
+  .live-edit-card strong {
+    font-size: 0.9rem;
   }
 
   .auth-modal-actions .btn {

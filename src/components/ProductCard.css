@@ -190,3 +190,59 @@
   color: var(--silver);
   margin-top: 2px;
 }
+
+@media (max-width: 480px) {
+  .product-card {
+    border-radius: 14px;
+  }
+
+  .product-card-info {
+    padding: 10px;
+  }
+
+  .product-card-brand,
+  .product-card-sizes,
+  .rating-count {
+    font-size: 0.6rem;
+  }
+
+  .product-card-gender,
+  .price-discount,
+  .fit-badge {
+    font-size: 0.55rem;
+  }
+
+  .product-card-name {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card-price {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+  }
+
+  .price-current {
+    font-size: 0.82rem;
+  }
+
+  .price-original {
+    font-size: 0.66rem;
+  }
+
+  .ai-insight-overlay {
+    display: none;
+  }
+
+  .product-card-actions {
+    opacity: 1;
+    transform: none;
+  }
+
+  .try-on-quick {
+    padding: 8px !important;
+    border-radius: 12px !important;
+    font-size: 0.62rem !important;
+  }
+}

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home as HomeIcon, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const NotFound = () => {
   return (

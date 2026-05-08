@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ChevronDown, Compass, Heart, Home, Search, ShoppingBag, Sparkles, User, WandSparkles } from 'lucide-react';
-import { useTryOn } from '../context/TryOnContext';
+import { useTryOn } from '../context/useTryOn';
 import { useAuth } from '../context/useAuth';
 import { useCart } from '../context/useCart';
 import { categoryMenu } from '../data/products';

@@ -1,8 +1,5 @@
-import { createContext, useState, useContext } from 'react';
-
-const TryOnContext = createContext();
-
-export const useTryOn = () => useContext(TryOnContext);
+import { useState } from 'react';
+import { TryOnContext } from './try-on-context';
 
 export const TryOnProvider = ({ children }) => {
   const [isTryOnOpen, setIsTryOnOpen] = useState(false);

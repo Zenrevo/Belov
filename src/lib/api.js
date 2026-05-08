@@ -1,5 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const TOKEN_KEY = 'belov_access_token';
+const TOKEN_KEY = import.meta.env.VITE_AUTH_TOKEN_KEY || 'belov_access_token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);

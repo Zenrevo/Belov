@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useTryOn } from '../context/TryOnContext';
+import { useTryOn } from '../context/useTryOn';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {

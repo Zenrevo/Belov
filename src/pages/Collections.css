@@ -415,10 +415,12 @@
 
   .brand-wall {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
   }
 
   .brand-tile {
-    min-height: 132px;
+    min-height: 124px;
+    padding: var(--space-3);
   }
 
   .brand-console-actions {
@@ -457,6 +459,7 @@
   }
 
   .collections-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: var(--space-3);
   }
 }
