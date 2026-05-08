@@ -1,0 +1,25 @@
+.confirmation-page {
+  padding: var(--space-24) 0;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.success-icon {
+  animation: scaleIn 0.6s var(--ease-spring);
+}
+.success-icon svg { stroke: var(--emerald); }
+
+@keyframes scaleIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.order-card {
+  border-radius: var(--radius-2xl);
+  border: 1.5px solid transparent;
+  background-image: linear-gradient(var(--surface-container-lowest), var(--surface-container-lowest)), var(--gradient-gold);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: var(--shadow-card);
+}

@@ -1,0 +1,170 @@
+/* ============================================================
+   AtelierHero — Full-bleed hero with background image
+   ============================================================ */
+.atelier-hero {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 72px);
+  min-height: 700px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 8vh;
+  background: var(--surface);
+}
+
+.atelier-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.atelier-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.05) 40%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  z-index: 1;
+}
+
+.hero-parallax-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;   /* Show the model's face, not just torso */
+  transform: scale(1.05);
+  transition: transform 10s ease-out;
+}
+
+.atelier-hero:hover .hero-parallax-img {
+  transform: scale(1);
+}
+
+.atelier-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+/* ── CTA Buttons ── */
+.atelier-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+.atelier-play-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: color var(--duration);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.atelier-play-btn:hover {
+  color: var(--accent-light);
+}
+
+.play-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all var(--duration);
+  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.atelier-play-btn:hover .play-icon {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ── Scroll hint (desktop only) ── */
+.atelier-scroll-hint {
+  position: absolute;
+  bottom: var(--space-12);
+  right: var(--space-12);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  transform: rotate(90deg);
+  transform-origin: right bottom;
+}
+
+.scroll-line {
+  width: 60px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Reveal animation for CTA ── */
+.animate-fade-in-up {
+  animation: heroFadeUp 1s var(--ease-out) forwards;
+}
+
+.delay-2 {
+  animation-delay: 4.8s;   /* After brand animation completes */
+  opacity: 0;
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   MOBILE  (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  .atelier-hero {
+    height: 100vh;
+    min-height: 600px;
+    padding-bottom: 130px; /* Space for bottom nav */
+    align-items: flex-end;
+  }
+
+  .atelier-content {
+    text-align: center;
+    padding: 0 var(--space-4);
+  }
+
+  .atelier-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    margin-top: var(--space-6);
+  }
+
+  .atelier-actions .btn {
+    width: 100%;
+  }
+
+  .atelier-scroll-hint {
+    display: none;
+  }
+}

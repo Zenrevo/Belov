@@ -1,0 +1,544 @@
+.home-ai-stylist {
+  background: #151311;
+}
+
+.landing-passport {
+  background: var(--surface-container-lowest);
+}
+
+.passport-intro {
+  padding: var(--space-14, 56px) 0;
+  background: #151311;
+  color: white;
+}
+
+.passport-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-8);
+  align-items: end;
+}
+
+.passport-copy h2 {
+  max-width: 760px;
+  font-family: var(--font-serif);
+  font-size: clamp(2.1rem, 4.8vw, 4.8rem);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.passport-intro .editorial-tag,
+.concierge-panel .editorial-tag,
+.runway-heading .editorial-tag,
+.brand-wall-heading .editorial-tag,
+.live-edit-heading .editorial-tag {
+  color: var(--accent-light);
+}
+
+.passport-metrics {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.passport-metrics span {
+  min-width: 116px;
+  padding: var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.passport-metrics strong {
+  display: block;
+  color: white;
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.concierge-stage {
+  padding: var(--space-20) 0;
+  background:
+    linear-gradient(90deg, var(--surface-warm), var(--surface-container-lowest));
+}
+
+.concierge-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+  gap: var(--space-12);
+  align-items: center;
+}
+
+.concierge-visual {
+  position: relative;
+  min-height: 640px;
+}
+
+.concierge-main-img,
+.concierge-float-img {
+  position: absolute;
+  object-fit: cover;
+  box-shadow: var(--shadow-float);
+}
+
+.concierge-main-img {
+  inset: 0 auto auto 0;
+  width: 68%;
+  height: 610px;
+  border-radius: var(--radius-2xl);
+}
+
+.concierge-float-img.one {
+  right: 3%;
+  top: 8%;
+  width: 38%;
+  height: 310px;
+  border-radius: var(--radius-xl);
+}
+
+.concierge-float-img.two {
+  right: 12%;
+  bottom: 0;
+  width: 31%;
+  height: 250px;
+  border-radius: var(--radius-xl);
+}
+
+.concierge-panel {
+  padding: var(--space-8);
+  border: 1px solid rgba(184, 147, 75, 0.18);
+  border-radius: var(--radius-2xl);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.concierge-panel h2 {
+  margin-bottom: var(--space-6);
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.passport-lock {
+  position: relative;
+  width: 100%;
+  min-height: 270px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.58);
+  text-align: left;
+}
+
+.passport-lock-list {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.passport-lock.locked .passport-lock-list {
+  filter: blur(7px);
+  transform: scale(1.02);
+}
+
+.passport-lock-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.passport-lock-row b {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+}
+
+.passport-lock-row em {
+  color: var(--teal);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.passport-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  color: var(--on-surface);
+  text-align: center;
+}
+
+.passport-lock-overlay svg {
+  color: var(--accent);
+}
+
+.passport-lock-overlay strong {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.passport-lock-overlay small {
+  color: var(--on-surface-variant);
+  font-weight: 800;
+}
+
+.concierge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.occasion-runway {
+  padding: var(--space-16) 0;
+  background: var(--surface-container-lowest);
+}
+
+.runway-heading,
+.brand-wall-heading,
+.live-edit-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.moment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.moment-tile {
+  position: relative;
+  min-height: 310px;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: #151311;
+  box-shadow: var(--shadow-sm);
+}
+
+.moment-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease-out);
+}
+
+.moment-tile:hover img {
+  transform: scale(1.05);
+}
+
+.moment-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.58));
+}
+
+.moment-tile span {
+  position: absolute;
+  left: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 1;
+  color: white;
+  font-family: var(--font-serif);
+  font-size: 1.7rem;
+}
+
+.brand-wall-section {
+  padding: var(--space-16) 0;
+  background: #151311;
+  color: white;
+}
+
+.brand-wall-heading > span:last-child,
+.live-edit-heading > span:last-child {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.home-brand-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+.home-brand-chip {
+  min-height: 124px;
+  display: grid;
+  align-content: space-between;
+  padding: var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform var(--duration) var(--ease-out), border-color var(--duration) var(--ease-out), background var(--duration) var(--ease-out);
+}
+
+.home-brand-chip.featured {
+  min-height: 152px;
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(212, 175, 110, 0.2), rgba(255, 255, 255, 0.1));
+  border-color: rgba(212, 175, 110, 0.34);
+}
+
+.home-brand-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 175, 110, 0.45);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.home-brand-chip span {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.home-brand-chip strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.live-edit-section {
+  padding: var(--space-16) 0;
+  background: #151311;
+  color: white;
+}
+
+.live-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.live-edit-card {
+  display: grid;
+  gap: var(--space-2);
+  color: white;
+}
+
+.live-edit-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.live-edit-card span,
+.live-edit-card em {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.live-edit-card strong {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  font-weight: 500;
+}
+
+.live-edit-card em {
+  color: var(--accent-light);
+}
+
+.editorial-tag {
+  display: block;
+  margin-bottom: var(--space-4);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.bg-dark {
+  background: #151311;
+}
+
+.auth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: rgba(20, 18, 17, 0.46);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.auth-modal {
+  position: relative;
+  width: min(520px, 100%);
+  padding: var(--space-8);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-float);
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+}
+
+.auth-modal-icon {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+  border-radius: 50%;
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+.auth-modal h2 {
+  max-width: 410px;
+  margin-bottom: var(--space-4);
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.auth-modal p {
+  max-width: 430px;
+  color: var(--on-surface-variant);
+  line-height: 1.7;
+}
+
+.auth-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 1024px) {
+  .passport-intro-grid,
+  .concierge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-metrics {
+    flex-wrap: wrap;
+  }
+
+  .moment-grid,
+  .live-edit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .concierge-visual {
+    min-height: 520px;
+  }
+
+  .concierge-main-img {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .passport-intro,
+  .concierge-stage,
+  .occasion-runway,
+  .brand-wall-section,
+  .live-edit-section {
+    padding: var(--space-12) 0;
+  }
+
+  .passport-metrics,
+  .concierge-actions,
+  .runway-heading,
+  .brand-wall-heading,
+  .live-edit-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .concierge-visual {
+    min-height: 430px;
+  }
+
+  .concierge-main-img {
+    width: 76%;
+    height: 420px;
+  }
+
+  .concierge-float-img.one {
+    width: 42%;
+    height: 210px;
+  }
+
+  .concierge-float-img.two {
+    width: 38%;
+    height: 180px;
+  }
+
+  .concierge-panel,
+  .auth-modal {
+    padding: var(--space-6);
+  }
+
+  .moment-grid,
+  .live-edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .moment-tile {
+    min-height: 250px;
+  }
+
+  .home-brand-chip.featured {
+    grid-column: span 1;
+  }
+
+  .auth-modal-actions .btn {
+    width: 100%;
+  }
+}

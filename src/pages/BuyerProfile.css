@@ -1,0 +1,127 @@
+.profile-page { min-height: 100vh; }
+
+.profile-page .section-sm {
+  padding-top: var(--space-8);
+}
+
+.credits-wallet-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) 1.6fr;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.credits-wallet-summary {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+}
+
+.credits-wallet-number {
+  margin-top: var(--space-3);
+  font-family: var(--font-serif);
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--on-surface);
+}
+
+.credits-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.credits-plan-card {
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-lowest);
+}
+
+.credits-plan-card.featured {
+  border-color: rgba(184, 147, 75, 0.45);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.plan-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.credits-plan-card strong {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.plan-price {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.size-passport {
+  text-align: center;
+  padding: var(--space-4) var(--space-6);
+  background: var(--gradient-warm);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid transparent;
+  background-image: linear-gradient(var(--surface-container-low), var(--surface-container-low)), var(--gradient-gold);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+.passport-size {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: var(--space-1);
+}
+
+.measure-val {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: var(--space-1);
+}
+
+.wardrobe-img {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--surface-container-low);
+}
+.wardrobe-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+.wardrobe-item:hover .wardrobe-img img { transform: scale(1.04); }
+
+.order-list { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.text-right { text-align: right; }
+
+@media (max-width: 900px) {
+  .credits-wallet-panel,
+  .credits-plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
