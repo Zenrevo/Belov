@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
   Heart,
-  Ruler,
-  ShieldCheck,
   ShoppingBag,
-  Sparkles,
-  Truck,
   WandSparkles
 } from 'lucide-react';
 import Footer from '../components/Footer';
@@ -19,11 +15,27 @@ import './ProductDetail.css';
 
 const formatPrice = (price = 0) => `₹${Number(price || 0).toLocaleString('en-IN')}`;
 
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => { ref.current = value; });
+  return ref.current;
+}
+
 const ProductDetail = () => {
   const { id } = useParams();
+  const { isTryOnOpen } = useTryOn();
   const [product, setProduct] = useState(() => fallbackProducts.find((item) => item.id === Number(id)) || fallbackProducts[0]);
   const [products, setProducts] = useState(fallbackProducts);
   const [brands, setBrands] = useState(fallbackBrands);
+  const [fetchKey, setFetchKey] = useState(0);
+
+  // Re-fetch product data when the try-on modal closes (to pick up new try-on images)
+  const prevTryOnOpen = usePrevious(isTryOnOpen);
+  useEffect(() => {
+    if (prevTryOnOpen && !isTryOnOpen) {
+      setFetchKey((k) => k + 1);
+    }
+  }, [isTryOnOpen, prevTryOnOpen]);
 
   useEffect(() => {
     let active = true;
@@ -46,7 +58,7 @@ const ProductDetail = () => {
       });
 
     return () => { active = false; };
-  }, [id]);
+  }, [id, fetchKey]);
 
   return <ProductDetailView key={product.id} product={product} products={products} marketplaceBrands={brands} />;
 };
@@ -56,7 +68,6 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
   const { addToCart } = useCart();
   const brand = marketplaceBrands.find((item) => item.name === product.brand);
   const sizes = Array.isArray(product.sizes) ? product.sizes : [];
-  const care = Array.isArray(product.care) ? product.care : [];
   const [selectedSize, setSelectedSize] = useState(product.recommendedSize || sizes[0] || '');
   const [addedToCart, setAddedToCart] = useState(false);
   const [viewMode, setViewMode] = useState('product-0');
@@ -87,19 +98,27 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
     return [...images, product.image].filter(Boolean).filter((image, index, allImages) => allImages.indexOf(image) === index);
   }, [product.image, product.images]);
 
+  const tryOnImages = useMemo(() => {
+    return Array.isArray(product.tryOnImages) ? product.tryOnImages : [];
+  }, [product.tryOnImages]);
+
   const productShots = useMemo(() => {
     const galleryShots = productImages.map((image, index) => ({
       label: index === 0 ? 'Model' : `View ${index + 1}`,
       mode: `product-${index}`,
-      image
+      image,
+      isTryOn: false
     }));
 
-    return [
-      ...galleryShots,
-      { label: 'You', mode: 'you', image: '/images/hero.png' },
-      { label: 'Fit', mode: 'fit', image: brand?.image || productImages[0] || product.image }
-    ];
-  }, [brand?.image, product.image, productImages]);
+    const tryOnShots = tryOnImages.map((tryOn, index) => ({
+      label: tryOn.userName ? `${tryOn.userName.split(' ')[0]}` : `Try-On`,
+      mode: `tryon-${index}`,
+      image: tryOn.url,
+      isTryOn: true
+    }));
+
+    return [...galleryShots, ...tryOnShots];
+  }, [productImages, tryOnImages]);
 
   const currentShot = productShots.find((shot) => shot.mode === viewMode) || productShots[0];
 
@@ -132,11 +151,14 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
                 <span>{product.fitMatch}% fit locked</span>
               </div>
 
-              <img src={currentShot.image} alt={product.name} className="pdp-hero-img" />
-
-              <div className="pdp-floating-proof">
-                <Sparkles size={16} />
-                <span>{selectedSize} recommended</span>
+              <div className={`pdp-hero-wrap ${currentShot.isTryOn ? 'tryon' : ''}`}>
+                <img src={currentShot.image} alt={product.name} className="pdp-hero-img" />
+                {currentShot.isTryOn && (
+                  <span className="pdp-tryon-badge">
+                    <WandSparkles size={12} />
+                    Try-On
+                  </span>
+                )}
               </div>
 
               <div className="pdp-shot-switcher" aria-label="Product view">
@@ -144,11 +166,10 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
                   <button
                     key={shot.mode}
                     type="button"
-                    className={viewMode === shot.mode ? 'active' : ''}
+                    className={`${viewMode === shot.mode ? 'active' : ''} ${shot.isTryOn ? 'tryon' : ''}`}
                     onClick={() => setViewMode(shot.mode)}
                   >
                     <img src={shot.image} alt="" />
-                    <span>{shot.label}</span>
                   </button>
                 ))}
               </div>
@@ -157,7 +178,7 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
 
           <aside className="pdp-buy-rail">
             <div className="pdp-brand-strip">
-              <span>{product.brand}</span>
+              <Link to={brand?.id ? `/brands/${brand.id}` : '/collections'}>{product.brand}</Link>
               <span>{brand?.specialty || product.category}</span>
             </div>
 
@@ -174,12 +195,11 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
               {discount > 0 && <em>{discount}% off</em>}
             </div>
 
-            <div className="pdp-signal-grid">
+            <div className="pdp-info-tags">
               {fitSignals.map((signal) => (
-                <div key={signal.label} className={`pdp-signal ${signal.tone}`}>
-                  <span>{signal.label}</span>
-                  <strong>{signal.value}</strong>
-                </div>
+                <span key={signal.label} className="pdp-info-tag">
+                  {signal.label}: <strong>{signal.value}</strong>
+                </span>
               ))}
             </div>
 
@@ -215,54 +235,7 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
                 <Heart size={18} />
               </button>
             </div>
-
-            <div className="pdp-service-row">
-              <span><Ruler size={15} /> Plus grading</span>
-              <span><Truck size={15} /> Fast dispatch</span>
-              <span><ShieldCheck size={15} /> Brand verified</span>
-            </div>
           </aside>
-        </div>
-      </section>
-
-      <section className="pdp-intel-section">
-        <div className="container pdp-intel-grid">
-          <div className="pdp-brand-card">
-            <div>
-              <span className="pdp-kicker">Brand fit</span>
-              <h2>{brand?.name || product.brand}</h2>
-            </div>
-            <strong>{brand?.fitScore || product.fitMatch}</strong>
-            <p>{brand?.specialty || product.subcategory}</p>
-            <Link to="/collections">View brand</Link>
-          </div>
-
-          <div className="pdp-fit-notes">
-            <span className="pdp-kicker">Fit notes</span>
-            <div className="pdp-note-grid">
-              <div>
-                <strong>Shape</strong>
-                <span>{product.subcategory}</span>
-              </div>
-              <div>
-                <strong>Movement</strong>
-                <span>{product.fabric}</span>
-              </div>
-              <div>
-                <strong>Color</strong>
-                <span>{product.color}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pdp-detail-card">
-            <span className="pdp-kicker">Care</span>
-            <div className="pdp-care-list">
-              {care.slice(0, 3).map((careItem) => (
-                <span key={careItem}>{careItem}</span>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -277,11 +250,6 @@ const ProductDetailView = ({ product, products, marketplaceBrands }) => {
             {relatedProducts.map((item) => (
               <Link key={item.id} to={`/product/${item.id}`} className="pdp-related-card">
                 <img src={item.image} alt={item.name} />
-                <div>
-                  <span>{item.brand}</span>
-                  <h3>{item.name}</h3>
-                  <p>{item.fitMatch}% fit · {formatPrice(item.price)}</p>
-                </div>
               </Link>
             ))}
           </div>

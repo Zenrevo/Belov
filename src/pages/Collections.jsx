@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, LayoutGrid, Search, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, SlidersHorizontal, Store, X } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
 import Footer from '../components/Footer';
@@ -9,6 +9,7 @@ import { catalogApi } from '../lib/api';
 import './Collections.css';
 
 const filterParamKeys = ['category', 'subcategory', 'gender', 'fabric', 'occasion', 'size', 'priceRange', 'brand', 'collection', 'vibe', 'search'];
+const filterOrder = ['gender', 'priceRange', 'brand', 'category', 'subcategory', 'size', 'fabric', 'occasion', 'collection', 'vibe', 'fit'];
 
 const getFiltersFromParams = (searchParams) => (
   filterParamKeys.reduce((acc, key) => {
@@ -50,8 +51,8 @@ const Collections = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState('fitMatch');
   const [brandQuery, setBrandQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [showProductGrid, setShowProductGrid] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [showAllBrands, setShowAllBrands] = useState(false);
   const [loading, setLoading] = useState(true);
   const [minimizedFilters, setMinimizedFilters] = useState({});
   const [catalogProducts, setCatalogProducts] = useState(fallbackProducts);
@@ -156,6 +157,10 @@ const Collections = () => {
     brand.name.toLowerCase().includes(brandQuery.toLowerCase())
     || brand.specialty.toLowerCase().includes(brandQuery.toLowerCase())
   ));
+  const displayedBrands = showAllBrands ? visibleBrands : visibleBrands.slice(0, 5);
+  const orderedFilters = filterOrder
+    .filter((key) => Array.isArray(filters[key]) && filters[key].length)
+    .map((key) => [key, filters[key]]);
 
   const activeFilterLabels = Object.entries(activeFilters).flatMap(([category, values]) => (
     values.map(value => `${filterLabels[category] || category}: ${value}`)
@@ -165,7 +170,7 @@ const Collections = () => {
   const signalCards = [
     { label: 'Fit', value: bestFitProduct.brand, meta: `${bestFitProduct.fitMatch}%`, to: `/product/${bestFitProduct.id}` },
     { label: 'Value', value: bestValueProduct.brand, meta: `₹${bestValueProduct.price.toLocaleString('en-IN')}`, to: `/product/${bestValueProduct.id}` },
-    { label: 'Brand', value: topBrand.name, meta: `${Math.min(topBrand.score || topBrand.fitScore, 99)}%`, to: `/collections?brand=${encodeURIComponent(topBrand.name)}&occasion=${encodeURIComponent(selectedOccasion)}` }
+    { label: 'Brand', value: topBrand.name, meta: `${Math.min(topBrand.score || topBrand.fitScore, 99)}%`, to: `/brands/${topBrand.id}` }
   ];
 
   return (
@@ -211,10 +216,10 @@ const Collections = () => {
           </div>
 
           <div className="brand-wall">
-            {visibleBrands.map((brand, index) => (
+            {displayedBrands.map((brand, index) => (
               <Link
                 key={brand.id}
-                to={`/collections?brand=${encodeURIComponent(brand.name)}&occasion=${encodeURIComponent(selectedOccasion)}`}
+                to={`/brands/${brand.id}`}
                 className={`brand-tile ${index < 3 ? 'top-match' : ''}`}
                 aria-label={`${brand.name}, ${Math.min(brand.score, 99)} percent match`}
               >
@@ -229,98 +234,106 @@ const Collections = () => {
           </div>
 
           <div className="brand-console-actions">
-            <span>{visibleBrands.length} brands</span>
-            <button className="grid-optional-toggle" onClick={() => setShowProductGrid(prev => !prev)}>
-              <LayoutGrid size={16} aria-hidden="true" />
-              {showProductGrid ? 'Hide grid' : 'Product grid'}
-            </button>
+            <span>{displayedBrands.length} of {visibleBrands.length} matched brands</span>
+            {visibleBrands.length > 5 && (
+              <button className="grid-optional-toggle" onClick={() => setShowAllBrands(prev => !prev)}>
+                <Store size={16} aria-hidden="true" />
+                {showAllBrands ? 'Show top 5' : 'See all brands'}
+              </button>
+            )}
           </div>
         </div>
       </section>
 
-      {showProductGrid && (
-        <section className="section-sm optional-grid-section">
-          <div className="container">
-            <div className={`collections-layout optional-grid-layout ${showFilters ? 'filters-open' : 'filters-closed'}`}>
-              <aside className={`filters-sidebar ${showFilters ? 'visible' : ''}`}>
-                <div className="filters-intro">
-                  <span className="label-caps text-accent">Filters</span>
-                </div>
-                {Object.entries(filters).map(([category, values]) => {
-                  const isMinimized = minimizedFilters[category];
-                  return (
-                    <div key={category} className="filter-group">
-                      <button
-                        className="filter-group-header flex justify-between items-center w-full bg-transparent border-none p-0 cursor-pointer mb-3"
-                        onClick={() => toggleGroup(category)}
-                      >
-                        <h4 className="label-caps m-0">{filterLabels[category] || category}</h4>
-                        {isMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-                      </button>
-                      {!isMinimized && (
-                        <div className="filter-chips flex flex-wrap gap-2">
-                          {values.map((val) => (
-                            <button
-                              key={val}
-                              className={`chip ${isActive(category, val) ? 'active' : ''}`}
-                              onClick={() => toggleFilter(category, val)}
-                            >
-                              {val}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </aside>
+      <section className="section-sm optional-grid-section">
+        <div className="container">
+          <div className="explore-grid-head">
+            <div>
+              <span className="label-caps text-accent">Explore grid</span>
+              <h2>Filter every piece</h2>
+            </div>
+            <p>Gender, price, brand, category, size and occasion are all mapped into the live catalog.</p>
+          </div>
 
-              <div className="collections-main">
-                <div className="collections-toolbar">
-                  <button className="filter-toggle-btn" onClick={() => setShowFilters(prev => !prev)}>
-                    <SlidersHorizontal size={16} aria-hidden="true" />
-                    {showFilters ? 'Hide filters' : 'Show filters'}
-                  </button>
-                  <p className="body-sm text-muted">{sortedProducts.length} pieces</p>
-                  <select
-                    className="sort-select"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="fitMatch">Best Fit Match</option>
-                    <option value="priceLow">Price: Low to High</option>
-                    <option value="priceHigh">Price: High to Low</option>
-                  </select>
-                </div>
-                {activeFilterLabels.length > 0 && (
-                  <div className="active-filter-row" aria-label="Active filters">
-                    {activeFilterLabels.map(label => (
-                      <span key={label} className="active-filter-pill">{label}</span>
-                    ))}
-                    <button className="clear-filter-btn" onClick={() => setSearchParams({})}>
-                      <X size={14} aria-hidden="true" />
-                      Clear
+          <div className={`collections-layout optional-grid-layout ${showFilters ? 'filters-open' : 'filters-closed'}`}>
+            <aside className={`filters-sidebar ${showFilters ? 'visible' : ''}`}>
+              <div className="filters-intro">
+                <span className="label-caps text-accent">Filters</span>
+              </div>
+              {orderedFilters.map(([category, values]) => {
+                const isMinimized = minimizedFilters[category];
+                return (
+                  <div key={category} className="filter-group">
+                    <button
+                      className="filter-group-header flex justify-between items-center w-full bg-transparent border-none p-0 cursor-pointer mb-3"
+                      onClick={() => toggleGroup(category)}
+                    >
+                      <h4 className="label-caps m-0">{filterLabels[category] || category}</h4>
+                      {isMinimized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                     </button>
-                  </div>
-                )}
-                <div className="editorial-gallery collections-grid">
-                  {loading
-                    ? Array(8).fill(0).map((_, i) => <ProductSkeleton key={i} />)
-                    : sortedProducts.length > 0 ? sortedProducts.map(p => (
-                      <ProductCard key={p.id} product={p} />
-                    )) : (
-                      <div className="empty-collection-state">
-                        <span className="label-caps text-accent">No exact match</span>
-                        <h3>Try one less filter.</h3>
+                    {!isMinimized && (
+                      <div className="filter-chips flex flex-wrap gap-2">
+                        {values.map((val) => (
+                          <button
+                            key={val}
+                            className={`chip ${isActive(category, val) ? 'active' : ''}`}
+                            onClick={() => toggleFilter(category, val)}
+                          >
+                            {val}
+                          </button>
+                        ))}
                       </div>
-                    )
-                  }
+                    )}
+                  </div>
+                );
+              })}
+            </aside>
+
+            <div className="collections-main">
+              <div className="collections-toolbar">
+                <button className="filter-toggle-btn" onClick={() => setShowFilters(prev => !prev)}>
+                  <SlidersHorizontal size={16} aria-hidden="true" />
+                  {showFilters ? 'Hide filters' : 'Show filters'}
+                </button>
+                <p className="body-sm text-muted">{sortedProducts.length} pieces</p>
+                <select
+                  className="sort-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="fitMatch">Best Fit Match</option>
+                  <option value="priceLow">Price: Low to High</option>
+                  <option value="priceHigh">Price: High to Low</option>
+                </select>
+              </div>
+              {activeFilterLabels.length > 0 && (
+                <div className="active-filter-row" aria-label="Active filters">
+                  {activeFilterLabels.map(label => (
+                    <span key={label} className="active-filter-pill">{label}</span>
+                  ))}
+                  <button className="clear-filter-btn" onClick={() => setSearchParams({})}>
+                    <X size={14} aria-hidden="true" />
+                    Clear
+                  </button>
                 </div>
+              )}
+              <div className="editorial-gallery collections-grid">
+                {loading
+                  ? Array(8).fill(0).map((_, i) => <ProductSkeleton key={i} />)
+                  : sortedProducts.length > 0 ? sortedProducts.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                  )) : (
+                    <div className="empty-collection-state">
+                      <span className="label-caps text-accent">No exact match</span>
+                      <h3>Try one less filter.</h3>
+                    </div>
+                  )
+                }
               </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <Footer />
     </div>

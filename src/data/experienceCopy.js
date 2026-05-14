@@ -110,7 +110,7 @@ export const pageTaglines = {
       },
       {
         title: 'A fitting room without the bad lighting.',
-        body: 'Adjust fit, compare sizes, and save the look when it feels like you.'
+        body: 'Compare the result with the selected piece and open the product when it feels right.'
       },
       {
         title: 'Sample size is not the default here.',

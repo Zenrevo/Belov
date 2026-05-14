@@ -4,8 +4,8 @@
 }
 
 .brand-console {
-  min-height: calc(100vh - 12px);
-  padding: 112px 0 var(--space-12);
+  min-height: clamp(520px, 72vh, 620px);
+  padding: 96px 0 var(--space-8);
   background:
     linear-gradient(90deg, rgba(21, 19, 17, 0.92), rgba(21, 19, 17, 0.7) 48%, rgba(21, 19, 17, 0.88)),
     url('/images/evening.png') center 16% / cover;
@@ -266,8 +266,29 @@
 }
 
 .optional-grid-section {
-  padding-top: 0;
+  padding: var(--space-8) 0 var(--space-16);
   background: var(--surface-container-lowest);
+}
+
+.explore-grid-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 520px);
+  gap: var(--space-8);
+  align-items: end;
+  margin-bottom: var(--space-8);
+}
+
+.explore-grid-head h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+  color: var(--primary);
+}
+
+.explore-grid-head p {
+  color: var(--on-surface-variant);
+  font-size: 0.95rem;
+  line-height: 1.7;
 }
 
 .collections-layout {
@@ -395,6 +416,11 @@
     grid-template-columns: 1fr;
   }
 
+  .explore-grid-head {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
   .brand-wall {
     grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
   }
@@ -410,7 +436,8 @@
 
 @media (max-width: 768px) {
   .brand-console {
-    padding: 88px 0 var(--space-10);
+    min-height: auto;
+    padding: 82px 0 var(--space-8);
   }
 
   .brand-wall {

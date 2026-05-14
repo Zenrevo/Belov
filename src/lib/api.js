@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 const TOKEN_KEY = import.meta.env.VITE_AUTH_TOKEN_KEY || 'belov_access_token';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
@@ -7,8 +8,9 @@ export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 export const apiRequest = async (path, options = {}) => {
   const token = getToken();
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
@@ -16,13 +18,18 @@ export const apiRequest = async (path, options = {}) => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
-    body: options.body && typeof options.body !== 'string'
+    body: options.body && !isFormData && typeof options.body !== 'string'
       ? JSON.stringify(options.body)
       : options.body
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text ? { detail: text } : null;
+  }
 
   if (!response.ok) {
     const message = data?.detail || data?.error || 'Request failed';
@@ -30,6 +37,12 @@ export const apiRequest = async (path, options = {}) => {
   }
 
   return data;
+};
+
+export const apiAssetUrl = (url) => {
+  if (!url || url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/api/')) return `${API_ORIGIN}${url}`;
+  return url;
 };
 
 export const authApi = {
@@ -54,7 +67,12 @@ export const orderApi = {
 
 export const profileApi = {
   get: () => apiRequest('/profile'),
-  update: (payload) => apiRequest('/profile', { method: 'PUT', body: payload })
+  update: (payload) => apiRequest('/profile', { method: 'PUT', body: payload }),
+  uploadPhoto: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiRequest('/profile/photos', { method: 'POST', body: formData });
+  }
 };
 
 export const catalogApi = {
@@ -70,6 +88,7 @@ export const catalogApi = {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/brands${query ? `?${query}` : ''}`);
   },
+  brand: (id) => apiRequest(`/brands/${encodeURIComponent(id)}`),
   filters: () => apiRequest('/filters'),
   recommendations: (params = {}) => {
     const query = new URLSearchParams(params).toString();
@@ -79,4 +98,17 @@ export const catalogApi = {
 
 export const sellerApi = {
   dashboard: () => apiRequest('/seller/dashboard')
+};
+
+export const tryOnApi = {
+  create: ({ productId, personImage, productImage, numberOfImages = 1 }) => {
+    const formData = new FormData();
+    formData.append('productId', productId);
+    formData.append('personImage', personImage);
+    if (productImage) formData.append('productImage', productImage);
+    formData.append('numberOfImages', numberOfImages);
+    return apiRequest('/try-on/sessions', { method: 'POST', body: formData });
+  },
+  list: () => apiRequest('/try-on/sessions'),
+  get: (sessionId) => apiRequest(`/try-on/sessions/${sessionId}`)
 };

@@ -5,21 +5,39 @@ import { useAuth } from '../context/useAuth';
 import { profileApi } from '../lib/api';
 import './Onboarding.css';
 
-const bodyTypes = [
-  { id: 'hourglass', label: 'Hourglass', icon: '/images/body-hourglass.png' }, // Placeholders, we'll use CSS shapes if images missing
-  { id: 'pear', label: 'Pear', icon: '/images/body-pear.png' },
-  { id: 'apple', label: 'Apple', icon: '/images/body-apple.png' },
-  { id: 'rectangle', label: 'Rectangle', icon: '/images/body-rectangle.png' },
-  { id: 'inverted', label: 'Inverted Triangle', icon: '/images/body-inverted.png' },
-];
+const bodyTypes = {
+  Women: [
+    { id: 'hourglass', label: 'Hourglass', icon: '/images/body-hourglass.png' },
+    { id: 'pear', label: 'Pear', icon: '/images/body-pear.png' },
+    { id: 'apple', label: 'Apple', icon: '/images/body-apple.png' },
+    { id: 'rectangle', label: 'Rectangle', icon: '/images/body-rectangle.png' },
+    { id: 'inverted', label: 'Inverted Triangle', icon: '/images/body-inverted.png' },
+  ],
+  Men: [
+    { id: 'trapezoid', label: 'Trapezoid', icon: '/images/body-trapezoid.png' },
+    { id: 'inverted_m', label: 'Inverted Triangle', icon: '/images/body-inverted-m.png' },
+    { id: 'rectangle_m', label: 'Rectangle', icon: '/images/body-rectangle-m.png' },
+    { id: 'triangle', label: 'Triangle', icon: '/images/body-triangle.png' },
+    { id: 'oval', label: 'Oval', icon: '/images/body-oval.png' },
+  ]
+};
 
-const stylePrefs = [
-  { name: 'Minimalist', img: '/images/tailored.png' },
-  { name: 'Statement', img: '/images/hero.png' },
-  { name: 'Classic', img: '/images/evening.png' },
-  { name: 'Streetwear', img: '/images/plus_size_kurta_1777572002528.png' },
-  { name: 'Bohemian', img: '/images/plus_size_coords_1777572038614.png' }
-];
+const stylePrefs = {
+  Women: [
+    { name: 'Minimalist', img: '/images/tailored.png' },
+    { name: 'Statement', img: '/images/hero.png' },
+    { name: 'Classic', img: '/images/evening.png' },
+    { name: 'Streetwear', img: '/images/plus_size_kurta_1777572002528.png' },
+    { name: 'Bohemian', img: '/images/plus_size_coords_1777572038614.png' }
+  ],
+  Men: [
+    { name: 'Minimalist', img: '/images/tailored.png' },
+    { name: 'Statement', img: '/images/men_statement.png' },
+    { name: 'Classic', img: '/images/plus_size_coords_1777572038614.png' },
+    { name: 'Streetwear', img: '/images/men_streetwear.png' },
+    { name: 'Bohemian', img: '/images/men_bohemian.png' }
+  ]
+};
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -31,6 +49,8 @@ const Onboarding = () => {
   const [skinTone, setSkinTone] = useState('');
   const [styles, setStyles] = useState([]);
   const [photosUploaded, setPhotosUploaded] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showMagicReveal, setShowMagicReveal] = useState(false);
 
@@ -50,7 +70,8 @@ const Onboarding = () => {
       bodyType,
       skinTone,
       stylePreferences: styles,
-      photosUploaded
+      photosUploaded,
+      photoUrl
     }).catch(() => {});
     setStep(7); // Loading state
     setIsGenerating(true);
@@ -131,7 +152,7 @@ const Onboarding = () => {
               <div className="quiz-step">
                 <p className="quiz-subtitle">Which shape best describes your silhouette?</p>
                 <div className="quiz-grid-3 mt-8">
-                  {bodyTypes.map(bt => (
+                  {(bodyTypes[gender] || bodyTypes['Women']).map(bt => (
                     <button 
                       key={bt.id} 
                       className={`quiz-card-sm ${bodyType === bt.id ? 'active' : ''}`}
@@ -169,7 +190,7 @@ const Onboarding = () => {
               <div className="quiz-step">
                 <p className="quiz-subtitle">What's your typical vibe? (Select up to 2)</p>
                 <div className="style-cards-grid mt-8">
-                  {stylePrefs.map(s => (
+                  {(stylePrefs[gender] || stylePrefs['Women']).map(s => (
                     <button 
                       key={s.name}
                       className={`style-card ${styles.includes(s.name) ? 'active' : ''}`}
@@ -192,9 +213,31 @@ const Onboarding = () => {
                   <div className="upload-icon" aria-hidden="true" />
                   <p className="upload-text">Drag & drop or click to upload</p>
                   <p className="upload-hint">Upload 3-4 photos. For best results, wear fitted clothing against a plain background.</p>
-                  <button className="btn btn-luxury-outline mt-4" onClick={() => setPhotosUploaded(true)}>
-                    {photosUploaded ? 'Uploaded (3)' : 'Select Photos'}
-                  </button>
+                  
+                  <input 
+                    type="file" 
+                    id="profile-photos" 
+                    accept="image/*" 
+                    className="hidden" 
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingPhoto(true);
+                      try {
+                        const res = await profileApi.uploadPhoto(file);
+                        setPhotoUrl(res.photoUrl);
+                        setPhotosUploaded(true);
+                      } catch (err) {
+                        console.error(err);
+                      } finally {
+                        setUploadingPhoto(false);
+                      }
+                    }}
+                  />
+                  <label htmlFor="profile-photos" className={`btn ${photosUploaded ? 'btn-luxury-primary' : 'btn-luxury-outline'} mt-4`} style={{ display: 'inline-block', cursor: 'pointer', opacity: uploadingPhoto ? 0.5 : 1 }}>
+                    {uploadingPhoto ? 'Uploading...' : photosUploaded ? 'Photo Uploaded ✓' : 'Select Photo'}
+                  </label>
                 </div>
                 <button className="btn btn-luxury-primary w-full mt-8" onClick={handleFinishQuiz}>Complete Profile</button>
               </div>
@@ -236,7 +279,7 @@ const Onboarding = () => {
             </div>
             <div className="reveal-right">
               <div className="reveal-avatar-card group">
-                <img src="/images/hero.png" alt="Your AI Avatar" className="reveal-avatar-img" />
+                <img src={gender === 'Men' ? '/images/plus_size_shirt_1777572022906.png' : '/images/hero.png'} alt="Your AI Avatar" className="reveal-avatar-img" />
                 <div className="reveal-badge">✦ 98% Match</div>
               </div>
             </div>

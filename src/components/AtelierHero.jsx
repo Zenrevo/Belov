@@ -13,7 +13,6 @@ const AtelierHero = () => {
       
       <div className="atelier-content">
         <div className="container">
-          {/* ── Brand Animation (replaces old LogoAnimation + title + subtitle) ── */}
           <HeroBrandAnimation />
           
           <div className="atelier-actions animate-fade-in-up delay-2">

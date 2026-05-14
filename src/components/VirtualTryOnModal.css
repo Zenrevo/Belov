@@ -38,22 +38,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.vto-credits {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--on-surface);
-}
-
-.credits-upgrade {
-  color: var(--primary);
-  text-decoration: underline;
-  cursor: pointer;
-  margin-left: var(--space-4);
-}
-
 .vto-close-btn {
   background: transparent;
   border: none;
@@ -137,6 +121,47 @@
   background: var(--surface-container-low);
 }
 
+.vto-auth-prompt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--space-3) var(--space-4);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-md);
+  color: #92400e;
+  cursor: pointer;
+  transition: all var(--duration);
+}
+
+.vto-auth-prompt:hover {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.vto-auth-prompt span {
+  font-size: 1.1rem;
+}
+
+.vto-auth-prompt p {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.vto-error {
+  margin-top: var(--space-4);
+  color: var(--error);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.vto-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .vto-upload-note {
   display: flex;
   flex-direction: column;
@@ -162,22 +187,6 @@
   color: var(--on-surface-variant);
   display: block;
   margin-bottom: var(--space-3);
-}
-
-.vto-slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.vto-slider-label {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-}
-
-.vto-slider {
-  flex: 1;
-  accent-color: var(--primary);
 }
 
 .vto-toggle {
@@ -272,6 +281,14 @@
   box-shadow: var(--shadow-sm);
 }
 
+.vto-refine-note {
+  margin-top: var(--space-3);
+  color: var(--teal);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+}
+
 /* RIGHT PANEL */
 .vto-brand {
   font-size: 0.8rem;
@@ -279,19 +296,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--on-surface-variant);
-}
-
-.vto-product-name {
-  font-family: var(--font-serif);
-  font-size: 1.8rem;
-  font-weight: 400;
-  margin-top: 4px;
-}
-
-.vto-price {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-top: 8px;
 }
 
 .vto-size-box {
@@ -318,19 +322,286 @@
   font-weight: 600;
 }
 
-.vto-link-btn {
-  background: transparent;
-  border: none;
-  font-size: 0.85rem;
-  color: var(--on-surface-variant);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .vto-disclaimer {
   font-size: 0.7rem;
   color: var(--silver);
   line-height: 1.5;
+}
+
+/* CLOTHES SELECTOR */
+.vto-clothes-selector {
+  background: var(--surface-container-low);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.vto-current-clothes-card {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.vto-current-clothes-card img {
+  width: 64px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.vto-current-info {
+  flex: 1;
+}
+
+.vto-product-name-sm {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.vto-price-sm {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.vto-clothes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.vto-clothing-thumb {
+  aspect-ratio: 3/4;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration);
+  opacity: 0.7;
+}
+
+.vto-clothing-thumb:hover {
+  opacity: 1;
+}
+
+.vto-clothing-thumb.active {
+  border-color: var(--primary);
+  opacity: 1;
+  box-shadow: var(--shadow-sm);
+}
+
+.vto-clothing-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TOP BAR ENHANCEMENTS */
+.vto-topbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.vto-login-trigger-btn {
+  background: var(--surface-container-low);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: all var(--duration);
+}
+
+.vto-login-trigger-btn:hover {
+  background: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.vto-credits-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--on-surface);
+  background: var(--surface-container-low);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+}
+
+.vto-nav {
+  display: flex;
+  gap: var(--space-8);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vto-nav a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+  transition: all var(--duration);
+  position: relative;
+  padding: 4px 0;
+}
+
+.vto-nav a:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--primary);
+  transition: width var(--duration);
+}
+
+.vto-nav a:hover {
+  color: var(--on-surface);
+}
+
+.vto-nav a:hover:after {
+  width: 100%;
+}
+
+/* LOGIN OVERLAY */
+.vto-login-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 10, 9, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  animation: fadeIn var(--duration) var(--ease-out);
+}
+
+.vto-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: var(--space-10);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  position: relative;
+  animation: slideUp 0.4s var(--ease-out);
+}
+
+.vto-login-close {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+
+.vto-login-header {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.vto-login-header h2 {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 8px 0;
+}
+
+.vto-login-header p {
+  font-size: 0.9rem;
+  color: var(--on-surface-variant);
+}
+
+.vto-login-channels {
+  display: flex;
+  gap: 8px;
+  background: var(--surface-container-low);
+  padding: 4px;
+  border-radius: var(--radius-full);
+}
+
+.vto-login-channels button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.vto-login-channels button.active {
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.vto-login-field input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+}
+
+.vto-dev-otp {
+  background: #fef9c3;
+  color: #854d0e;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.vto-login-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-6);
+}
+
+.vto-login-footer a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.vto-login-nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.vto-login-nav a {
+  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* RESPONSIVE */
@@ -364,6 +635,9 @@
     position: static;
     background: white;
   }
+  .vto-nav {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
@@ -376,9 +650,6 @@
   }
   .vto-thumbnails {
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  }
-  .vto-product-name {
-    font-size: 1.4rem;
   }
   .vto-left-panel,
   .vto-right-panel {

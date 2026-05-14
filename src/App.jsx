@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Collections from './pages/Collections';
 import ProductDetail from './pages/ProductDetail';
+import BrandProfile from './pages/BrandProfile';
 import Onboarding from './pages/Onboarding';
 import BuyerProfile from './pages/BuyerProfile';
 import Cart from './pages/Cart';
@@ -18,6 +19,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import SplashScreen from './components/SplashScreen';
 import FitPulse from './components/FitPulse';
+import OnboardingPrompt from './components/OnboardingPrompt';
 import { useState } from 'react';
 
 function App() {
@@ -33,11 +35,13 @@ function App() {
               <Navbar />
               <VirtualTryOnModal />
               <FitPulse />
+              <OnboardingPrompt />
               <main>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/collections" element={<Collections />} />
+                  <Route path="/brands/:brandId" element={<BrandProfile />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/profile" element={<BuyerProfile />} />

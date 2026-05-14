@@ -30,9 +30,12 @@ const Navbar = () => {
     navigate(`/collections?search=${encodeURIComponent(searchTerm.trim())}`);
   };
 
+  const isHome = location.pathname === '/';
+  const navScrolledClass = scrolled || !isHome ? 'scrolled' : '';
+
   return (
     <>
-      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} id="main-nav">
+      <nav className={`navbar ${navScrolledClass}`} id="main-nav">
         <div className="container nav-inner">
           <div className="nav-left flex items-center">
             <Link to="/" className="nav-brand" id="nav-logo">

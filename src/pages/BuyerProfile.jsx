@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
-import PageTagline from '../components/PageTagline';
+
 import { useAuth } from '../context/useAuth';
 import { orderApi, profileApi } from '../lib/api';
 import { products } from '../data/products';
@@ -26,13 +26,16 @@ const BuyerProfile = () => {
     <div className="profile-page">
       <section className="section-sm">
         <div className="container">
-          <PageTagline page="profile" />
-
-          <div className="profile-header flex justify-between items-start">
-            <div>
-              <span className="label-caps" style={{ color: 'var(--lavender)' }}>Personal Archive</span>
-              <h1 className="headline-md mt-2">Welcome Back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}</h1>
-              <p className="body-sm text-muted mt-2">Built for your measurements, saved looks, and try-on history.</p>
+          <div className="profile-header-card flex justify-between items-start">
+            <div className="flex gap-6 items-center">
+              {fit?.photoUrl && (
+                <img src={fit.photoUrl} alt="Profile" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} />
+              )}
+              <div>
+                <span className="label-caps" style={{ color: 'var(--lavender)' }}>Personal Archive</span>
+                <h1 className="headline-md mt-2">Welcome Back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}</h1>
+                <p className="body-sm text-muted mt-2">Built for your measurements, saved looks, and try-on history.</p>
+              </div>
             </div>
             <div className="flex gap-3">
               <Link to={isAuthenticated ? '/onboarding' : '/auth?mode=login'} className="btn btn-secondary">{isAuthenticated ? 'Edit Profile' : 'Login'}</Link>
@@ -40,61 +43,63 @@ const BuyerProfile = () => {
             </div>
           </div>
 
-          {/* Try-On Credits */}
-          <div className="credits-wallet-panel mt-8">
-            <div className="credits-wallet-summary">
-              <span className="label-caps" style={{ color: 'var(--accent)' }}>Try-On Credits</span>
-              <div className="credits-wallet-number">{tryOn?.used ?? 8}</div>
-              <p className="body-sm text-muted">You've used {tryOn?.used ?? 8}/{tryOn?.limit ?? 10} free try-ons this month.</p>
+          <div className="dashboard-grid">
+            {/* Try-On Credits */}
+            <div className="dashboard-panel credits-wallet-panel">
+              <div className="credits-wallet-summary">
+                <span className="label-caps" style={{ color: 'var(--accent)' }}>Try-On Credits</span>
+                <div className="credits-wallet-number">{tryOn?.used ?? 8}</div>
+                <p className="body-sm text-muted">You've used {tryOn?.used ?? 8}/{tryOn?.limit ?? 10} free try-ons this month.</p>
+              </div>
+              <div className="credits-plan-grid">
+                <div className="credits-plan-card">
+                  <span className="plan-name">Free</span>
+                  <strong>10 tries</strong>
+                  <span className="plan-price">Included</span>
+                </div>
+                <div className="credits-plan-card featured">
+                  <span className="plan-name">Basic</span>
+                  <strong>50 tries</strong>
+                  <span className="plan-price">₹199</span>
+                </div>
+                <div className="credits-plan-card">
+                  <span className="plan-name">Pro</span>
+                  <strong>120 tries</strong>
+                  <span className="plan-price">₹399</span>
+                </div>
+              </div>
             </div>
-            <div className="credits-plan-grid">
-              <div className="credits-plan-card">
-                <span className="plan-name">Free</span>
-                <strong>10 tries</strong>
-                <span className="plan-price">Included</span>
-              </div>
-              <div className="credits-plan-card featured">
-                <span className="plan-name">Basic</span>
-                <strong>50 tries</strong>
-                <span className="plan-price">₹199</span>
-              </div>
-              <div className="credits-plan-card">
-                <span className="plan-name">Pro</span>
-                <strong>120 tries</strong>
-                <span className="plan-price">₹399</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Fit Signature Card */}
-          <div className="fit-signature card-glass p-8 mt-8">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="label-caps" style={{ color: 'var(--coral)' }}>Your Fit Signature</span>
-                <h2 className="headline-sm mt-2">Global Size ID</h2>
-                <p className="body-sm text-muted mt-2">Your measurements mapped across all brands.</p>
+            {/* Fit Signature Card */}
+            <div className="dashboard-panel fit-signature">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="label-caps" style={{ color: 'var(--coral)' }}>Your Fit Signature</span>
+                  <h2 className="headline-sm mt-2">Global Size ID</h2>
+                  <p className="body-sm text-muted mt-2">Your measurements mapped across all brands.</p>
+                </div>
+                <div className="size-passport">
+                  <span className="passport-size">{fit?.globalSizeId || '2XL'}</span>
+                  <span className="label-caps-sm text-muted">Primary Size</span>
+                </div>
               </div>
-              <div className="size-passport">
-                <span className="passport-size">{fit?.globalSizeId || '2XL'}</span>
-                <span className="label-caps-sm text-muted">Primary Size</span>
-              </div>
-            </div>
-            <div className="measurement-summary mt-6 grid grid-4">
-              <div className="measure-item text-center">
-                <span className="measure-val" style={{ color: 'var(--coral)' }}>{fit?.bust || 96}</span>
-                <span className="label-caps-sm text-muted">Bust (cm)</span>
-              </div>
-              <div className="measure-item text-center">
-                <span className="measure-val" style={{ color: 'var(--lavender)' }}>{fit?.waist || 84}</span>
-                <span className="label-caps-sm text-muted">Waist (cm)</span>
-              </div>
-              <div className="measure-item text-center">
-                <span className="measure-val" style={{ color: 'var(--teal)' }}>{fit?.hips || 104}</span>
-                <span className="label-caps-sm text-muted">Hips (cm)</span>
-              </div>
-              <div className="measure-item text-center">
-                <span className="measure-val" style={{ color: 'var(--peach)' }}>{fit?.height || 165}</span>
-                <span className="label-caps-sm text-muted">Height (cm)</span>
+              <div className="measurements-grid">
+                <div className="measure-item text-center">
+                  <span className="measure-val" style={{ color: 'var(--coral)' }}>{fit?.bust || 96}</span>
+                  <span className="label-caps-sm text-muted">{profile?.gender === 'Men' ? 'Chest (cm)' : 'Bust (cm)'}</span>
+                </div>
+                <div className="measure-item text-center">
+                  <span className="measure-val" style={{ color: 'var(--lavender)' }}>{fit?.waist || 84}</span>
+                  <span className="label-caps-sm text-muted">Waist (cm)</span>
+                </div>
+                <div className="measure-item text-center">
+                  <span className="measure-val" style={{ color: 'var(--teal)' }}>{fit?.hips || 104}</span>
+                  <span className="label-caps-sm text-muted">Hips (cm)</span>
+                </div>
+                <div className="measure-item text-center">
+                  <span className="measure-val" style={{ color: 'var(--peach)' }}>{fit?.height || 165}</span>
+                  <span className="label-caps-sm text-muted">Height (cm)</span>
+                </div>
               </div>
             </div>
           </div>
