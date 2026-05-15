@@ -1,23 +1,63 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
+import ProductCard from '../components/ProductCard';
 
 import { useAuth } from '../context/useAuth';
-import { orderApi, profileApi } from '../lib/api';
-import { products } from '../data/products';
+import { useNotifications } from '../context/useNotifications';
+import { orderApi, profileApi, catalogApi } from '../lib/api';
 import './BuyerProfile.css';
 
 const BuyerProfile = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { notify } = useNotifications();
   const [profile, setProfile] = useState(null);
   const [orders, setOrders] = useState([]);
-  const savedItems = products.slice(0, 3);
+  const [savedItems, setSavedItems] = useState([]);
+  const [recommendationSections, setRecommendationSections] = useState([]);
+
+  const refreshRecommendations = useCallback(() => {
+    catalogApi.recommendations({ perCategory: 4 })
+      .then((response) => {
+        const sections = response.sections || [];
+        setRecommendationSections(sections);
+        const firstProducts = sections.flatMap((section) => section.products || []);
+        setSavedItems(firstProducts.slice(0, 3));
+      })
+      .catch(() => {
+        setRecommendationSections([]);
+        catalogApi.products().then((res) => setSavedItems((res.products || []).slice(0, 3))).catch(() => {});
+      });
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     profileApi.get().then(setProfile).catch(() => {});
     orderApi.list().then((response) => setOrders(response.orders || [])).catch(() => {});
-  }, [isAuthenticated]);
+    refreshRecommendations();
+  }, [isAuthenticated, refreshRecommendations]);
+
+  const handleChangeRecommendation = async (section, product) => {
+    try {
+      await catalogApi.recommendationChoice({
+        productId: product.id,
+        category: section.id || product.recommendationCategory || product.category,
+        action: 'dismissed'
+      });
+      refreshRecommendations();
+      notify({
+        variant: 'info',
+        title: 'Recommendation refreshed',
+        message: `${product.name} will be replaced with another pick.`
+      });
+    } catch (err) {
+      notify({
+        variant: 'error',
+        title: 'Could not update recommendation',
+        message: err.message
+      });
+    }
+  };
 
   const fit = profile?.fitProfile;
   const tryOn = profile?.tryOn;
@@ -86,7 +126,7 @@ const BuyerProfile = () => {
               <div className="measurements-grid">
                 <div className="measure-item text-center">
                   <span className="measure-val" style={{ color: 'var(--coral)' }}>{fit?.bust || 96}</span>
-                  <span className="label-caps-sm text-muted">{profile?.gender === 'Men' ? 'Chest (cm)' : 'Bust (cm)'}</span>
+                  <span className="label-caps-sm text-muted">{fit?.gender === 'Men' ? 'Chest (cm)' : 'Bust (cm)'}</span>
                 </div>
                 <div className="measure-item text-center">
                   <span className="measure-val" style={{ color: 'var(--lavender)' }}>{fit?.waist || 84}</span>
@@ -103,6 +143,43 @@ const BuyerProfile = () => {
               </div>
             </div>
           </div>
+
+          {recommendationSections.length > 0 && (
+            <div className="mt-12 profile-recommendations">
+              <div className="flex justify-between items-end mb-6">
+                <div>
+                  <span className="label-caps" style={{ color: 'var(--accent)' }}>Recommended For You</span>
+                  <h2 className="headline-sm mt-2">Category picks</h2>
+                </div>
+                <Link to="/collections" className="btn btn-ghost label-caps">Browse all</Link>
+              </div>
+              {recommendationSections.map((section) => (
+                <section className="recommendation-band" key={section.id}>
+                  <div className="recommendation-band-head">
+                    <div>
+                      <h3>{section.category}</h3>
+                      <p>{section.reason}</p>
+                    </div>
+                    <span>{section.products?.length || 0} picks</span>
+                  </div>
+                  <div className="recommendation-product-grid">
+                    {(section.products || []).map((product) => (
+                      <div className="recommendation-product" key={`${section.id}-${product.id}`}>
+                        <ProductCard product={product} />
+                        <button
+                          type="button"
+                          className="recommendation-change-btn"
+                          onClick={() => handleChangeRecommendation(section, product)}
+                        >
+                          Change this pick
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
 
           {/* Wardrobe */}
           <div className="mt-12">
@@ -129,17 +206,17 @@ const BuyerProfile = () => {
           <div className="mt-12">
             <h2 className="headline-sm mb-6">Order History</h2>
             <div className="order-list">
-              {(orders.length ? orders : [{
-                orderId: 'BLV-2026-0847',
-                items: [{ name: 'Draped Silk Blouse' }, { name: 'Structured Wool Blazer' }],
-                createdAt: '28 Apr 2026',
-                status: 'Delivered',
-                total: 12498
-              }]).map((order) => (
+              {orders.length ? orders.map((order) => (
                 <div key={order.orderId} className="order-item flex justify-between items-center p-6" style={{ background: 'var(--surface-container-low)', borderRadius: 'var(--radius-lg)' }}>
                   <div>
                     <span className="label-caps-sm" style={{ color: 'var(--teal)' }}>Order #{order.orderId}</span>
-                    <p className="body-sm mt-1">{order.items.map((item) => item.name).join(', ')}</p>
+                    <div className="profile-order-products mt-2">
+                      {order.items.map((item) => (
+                        <Link key={`${order.orderId}-${item.productId}`} to={`/product/${item.productId}`}>
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
                     <p className="body-sm text-muted mt-1">Placed on {order.createdAt}</p>
                     <Link to={`/order-confirmation/${order.orderId}`} className="body-sm text-accent mt-1" style={{ display: 'inline-block', fontWeight: 700 }}>
                       Track order
@@ -150,7 +227,9 @@ const BuyerProfile = () => {
                     <p className="body-sm mt-2">₹{order.total.toLocaleString()}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="p-6 text-center text-muted">No orders placed yet.</div>
+              )}
             </div>
           </div>
         </div>

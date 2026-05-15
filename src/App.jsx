@@ -14,9 +14,12 @@ import NotFound from './pages/NotFound';
 import VirtualTryOn from './pages/VirtualTryOn';
 import Auth from './pages/Auth';
 import VirtualTryOnModal from './components/VirtualTryOnModal';
+import NotificationCenter from './components/NotificationCenter';
+import ScrollToTop from './components/ScrollToTop';
 import { TryOnProvider } from './context/TryOnContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { NotificationProvider } from './context/NotificationContext';
 import SplashScreen from './components/SplashScreen';
 import FitPulse from './components/FitPulse';
 import OnboardingPrompt from './components/OnboardingPrompt';
@@ -26,40 +29,44 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
-    <AuthProvider>
-      <CartProvider>
-        <TryOnProvider>
-          {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-          <Router>
-            <div className="app-container">
-              <Navbar />
-              <VirtualTryOnModal />
-              <FitPulse />
-              <OnboardingPrompt />
-              <main>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/collections" element={<Collections />} />
-                  <Route path="/brands/:brandId" element={<BrandProfile />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/profile" element={<BuyerProfile />} />
-                  <Route path="/tryon" element={<VirtualTryOn />} />
-                  <Route path="/try-on" element={<VirtualTryOn />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                  <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-                  <Route path="/seller" element={<SellerDashboard />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-            </div>
-          </Router>
-        </TryOnProvider>
-      </CartProvider>
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <CartProvider>
+          <TryOnProvider>
+            {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+            <Router>
+              <ScrollToTop />
+              <div className="app-container">
+                <Navbar />
+                <VirtualTryOnModal />
+                <NotificationCenter />
+                <FitPulse />
+                <OnboardingPrompt />
+                <main>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/collections" element={<Collections />} />
+                    <Route path="/brands/:brandId" element={<BrandProfile />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/profile" element={<BuyerProfile />} />
+                    <Route path="/tryon" element={<VirtualTryOn />} />
+                    <Route path="/try-on" element={<VirtualTryOn />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                    <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                    <Route path="/seller" element={<SellerDashboard />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
+            </Router>
+          </TryOnProvider>
+        </CartProvider>
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
 

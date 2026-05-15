@@ -191,6 +191,19 @@
   margin-top: 2px;
 }
 
+.product-card-reco-size {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(27, 94, 86, 0.08);
+  color: var(--teal);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 480px) {
   .product-card {
     border-radius: 14px;
@@ -202,6 +215,7 @@
 
   .product-card-brand,
   .product-card-sizes,
+  .product-card-reco-size,
   .rating-count {
     font-size: 0.6rem;
   }

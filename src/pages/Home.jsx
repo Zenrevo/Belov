@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 import AtelierHero from '../components/AtelierHero';
 import { useTryOn } from '../context/useTryOn';
 import { useAuth } from '../context/useAuth';
-import { marketplaceBrands as fallbackBrands, products as fallbackProducts, recommendedBrandPreview } from '../data/products';
 import { catalogApi } from '../lib/api';
 import './Home.css';
 
@@ -31,9 +30,9 @@ const Home = () => {
   const { openTryOn } = useTryOn();
   const { isAuthenticated } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [brands, setBrands] = useState(fallbackBrands);
-  const [products, setProducts] = useState(fallbackProducts);
-  const [recommendedBrands, setRecommendedBrands] = useState(recommendedBrandPreview);
+  const [brands, setBrands] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [recommendedBrands, setRecommendedBrands] = useState([]);
   const heroBrands = brands.slice(0, 12);
   const liveEdit = products.slice(0, 4);
 
@@ -43,18 +42,18 @@ const Home = () => {
       catalogApi.products()
     ])
       .then(([brandResponse, productResponse]) => {
-        setBrands(brandResponse.brands || fallbackBrands);
-        setProducts(productResponse.products || fallbackProducts);
+        setBrands(brandResponse.brands || []);
+        setProducts(productResponse.products || []);
       })
       .catch(() => {
-        setBrands(fallbackBrands);
-        setProducts(fallbackProducts);
+        setBrands([]);
+        setProducts([]);
       });
   }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      Promise.resolve().then(() => setRecommendedBrands(recommendedBrandPreview));
+      Promise.resolve().then(() => setRecommendedBrands([]));
       return;
     }
 
@@ -65,13 +64,13 @@ const Home = () => {
           reason: brand.specialty,
           match: `${brand.score || brand.fitScore}%`
         }));
-        setRecommendedBrands(rows.length ? rows : recommendedBrandPreview);
+        setRecommendedBrands(rows.length ? rows : []);
       })
-      .catch(() => setRecommendedBrands(recommendedBrandPreview));
+      .catch(() => setRecommendedBrands([]));
   }, [isAuthenticated]);
 
   const topFit = useMemo(() => (
-    products.reduce((best, item) => item.fitMatch > best.fitMatch ? item : best, products[0] || fallbackProducts[0])
+    products.reduce((best, item) => item.fitMatch > best.fitMatch ? item : best, products[0] || { fitMatch: 0 })
   ), [products]);
 
   return (
@@ -132,10 +131,12 @@ const Home = () => {
 
               <div className="concierge-actions">
                 <Link to="/collections" className="btn btn-luxury-primary">Explore brands</Link>
-                <button className="btn btn-luxury-outline" onClick={() => openTryOn(products[0] || fallbackProducts[0])}>
-                  <WandSparkles size={16} aria-hidden="true" />
-                  Try first look
-                </button>
+                {products.length > 0 && (
+                  <button className="btn btn-luxury-outline" onClick={() => openTryOn(products[0])}>
+                    <WandSparkles size={16} aria-hidden="true" />
+                    Try first look
+                  </button>
+                )}
               </div>
             </div>
           </div>

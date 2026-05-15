@@ -17,8 +17,9 @@ const OnboardingPrompt = () => {
     if (isAuthenticated && !dismissed && location.pathname !== '/onboarding') {
       profileApi.get().then(profile => {
         if (active) {
+          const fit = profile?.fitProfile || {};
           // Check if key onboarding fields are missing
-          if (!profile.gender || !profile.bodyType || !profile.height) {
+          if (!fit.gender || !fit.bodyType || !fit.height || !fit.favoriteCategories?.length) {
             setNeedsOnboarding(true);
           } else {
             setNeedsOnboarding(false);
@@ -29,7 +30,9 @@ const OnboardingPrompt = () => {
         if (active) setNeedsOnboarding(true);
       });
     } else {
-      setNeedsOnboarding(false);
+      queueMicrotask(() => {
+        if (active) setNeedsOnboarding(false);
+      });
     }
     
     return () => { active = false; };

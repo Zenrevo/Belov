@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Upload, WandSparkles, X } from 'lucide-react';
-import { apiAssetUrl, catalogApi, tryOnApi } from '../lib/api';
+import { apiAssetUrl, tryOnApi, profileApi } from '../lib/api';
 import { useAuth } from '../context/useAuth';
+import { useNotifications } from '../context/useNotifications';
 import { useTryOn } from '../context/useTryOn';
 import './VirtualTryOnModal.css';
 
 const VirtualTryOnModal = () => {
   const { isTryOnOpen, tryOnProduct: initialProduct, closeTryOn } = useTryOn();
   const { isAuthenticated } = useAuth();
-  const [viewMode, setViewMode] = useState('me'); // 'me' or 'model'
+  const { notify } = useNotifications();
+  const navigate = useNavigate();
   const [personFile, setPersonFile] = useState(null);
   const [personPreview, setPersonPreview] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [creditsRemaining, setCreditsRemaining] = useState(0);
   
   // Auth state for popup
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -27,54 +29,42 @@ const VirtualTryOnModal = () => {
 
   const { requestOtp, verifyOtp } = useAuth();
   
-  const [productSelection, setProductSelection] = useState({
-    sourceId: initialProduct?.id ?? null,
-    product: initialProduct
-  });
-  const [selectedPersonUrl, setSelectedPersonUrl] = useState(initialProduct?.gender === 'Men' ? '/images/plus_size_shirt_1777572022906.png' : '/images/hero.png');
-
-  // Available products for the "Clothes Selector"
-  const [allProducts, setAllProducts] = useState([]);
-
-  if (initialProduct && productSelection.sourceId !== initialProduct.id) {
-    setProductSelection({
-      sourceId: initialProduct.id,
-      product: initialProduct
-    });
-  }
-
-  useEffect(() => {
-    catalogApi.products()
-      .then(res => setAllProducts(res.products || []))
-      .catch(() => {});
-  }, []);
+  const currentProduct = initialProduct;
+  const [selectedPersonUrl, setSelectedPersonUrl] = useState('');
 
   useEffect(() => () => {
     if (personPreview.startsWith('blob:')) URL.revokeObjectURL(personPreview);
   }, [personPreview]);
 
-  const currentProduct = productSelection.product || initialProduct;
-  const selectProduct = (product) => {
-    setProductSelection({
-      sourceId: initialProduct?.id ?? product.id,
-      product
-    });
-  };
+  useEffect(() => {
+    if (isAuthenticated && isTryOnOpen) {
+      profileApi.get()
+        .then(res => {
+          const used = Number(res?.tryOn?.used || 0);
+          const limit = Number(res?.tryOn?.limit || 0);
+          setCreditsRemaining(Math.max(limit - used, 0));
+          if (res?.fitProfile?.photoUrl) {
+            const url = apiAssetUrl(res.fitProfile.photoUrl);
+            setSelectedPersonUrl(url);
+            setPersonPreview(url);
+          } else {
+            setSelectedPersonUrl('');
+            setPersonPreview('');
+          }
+        })
+        .catch(() => {
+          setCreditsRemaining(0);
+          setSelectedPersonUrl('');
+          setPersonPreview('');
+        });
+    }
+  }, [isAuthenticated, isTryOnOpen]);
 
   const productId = Number.isFinite(Number(currentProduct?.id)) ? Number(currentProduct.id) : 1;
-  const activeResult = (result?.productId === productId && result?.personUrl === selectedPersonUrl) ? result : null;
-  const resultImageUrl = apiAssetUrl(activeResult?.resultImageUrl);
-  const creditsRemaining = activeResult?.creditsRemaining ?? 10;
 
   const studioPhotos = useMemo(() => {
-    const isMen = currentProduct?.gender === 'Men';
-    return [
-      { id: 'p1', url: isMen ? '/images/plus_size_shirt_1777572022906.png' : '/images/hero.png', label: 'Model 1' },
-      { id: 'p2', url: isMen ? '/images/tailored.png' : '/images/evening.png', label: 'Model 2' },
-      { id: 'p3', url: isMen ? '/images/plus_size_coords_1777572038614.png' : '/images/plus_size_kurta_1777572002528.png', label: 'Model 3' },
-      ...(personPreview ? [{ id: 'user', url: personPreview, label: 'Your Photo' }] : [])
-    ];
-  }, [personPreview, currentProduct?.gender]);
+    return personPreview ? [{ id: 'user', url: personPreview, label: 'Your Photo' }] : [];
+  }, [personPreview]);
 
   if (!isTryOnOpen || !currentProduct) return null;
 
@@ -86,14 +76,12 @@ const VirtualTryOnModal = () => {
     setPersonFile(file);
     setPersonPreview(url);
     setSelectedPersonUrl(url);
-    setResult(null);
     setError('');
   };
 
   const handlePredefinedPersonSelect = (url) => {
     setSelectedPersonUrl(url);
     setPersonFile(null); // Reset file if selecting predefined
-    setResult(null);
     setError('');
   };
 
@@ -103,22 +91,32 @@ const VirtualTryOnModal = () => {
       return;
     }
     if (!personFile && !selectedPersonUrl) {
-      setError('Select a model or upload a body photo before generating.');
+      setError('Upload your profile photo before generating.');
       return;
     }
 
     setError('');
     setIsGenerating(true);
     try {
-      const response = await tryOnApi.create({
+      await tryOnApi.create({
         productId,
         personImage: personFile || selectedPersonUrl, // Can be file or URL depending on backend support
         numberOfImages: 1
       });
-      setResult({ ...response, productId, personUrl: selectedPersonUrl });
-      setViewMode('me');
+      notify({
+        variant: 'progress',
+        title: 'Virtual try-on ready',
+        message: 'Result added to the product gallery.'
+      });
+      closeTryOn();
+      navigate(`/product/${productId}`);
     } catch (err) {
       setError(err.message);
+      notify({
+        variant: 'error',
+        title: 'Try-on failed',
+        message: err.message
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -134,6 +132,11 @@ const VirtualTryOnModal = () => {
       setAuthStep('verify');
     } catch (err) {
       setError(err.message);
+      notify({
+        variant: 'error',
+        title: 'Could not send OTP',
+        message: err.message
+      });
     } finally {
       setAuthLoading(false);
     }
@@ -148,6 +151,11 @@ const VirtualTryOnModal = () => {
       setIsLoginOpen(false);
     } catch (err) {
       setError(err.message);
+      notify({
+        variant: 'error',
+        title: 'Login failed',
+        message: err.message
+      });
     } finally {
       setAuthLoading(false);
     }
@@ -155,7 +163,7 @@ const VirtualTryOnModal = () => {
 
   return (
     <div className={`vto-overlay ${isTryOnOpen ? 'open' : ''}`}>
-      <div className="vto-modal">
+      <div className="vto-modal compact-vto-modal">
         {/* TOP BAR */}
         <div className="vto-topbar">
           <div className="vto-topbar-left">
@@ -171,23 +179,31 @@ const VirtualTryOnModal = () => {
               </div>
             )}
           </div>
-          
-          <div className="vto-nav">
-            <Link to="/" onClick={closeTryOn}>Home</Link>
-            <Link to="/collections" onClick={closeTryOn}>Marketplace</Link>
-            <Link to="/profile" onClick={closeTryOn}>Profile</Link>
-          </div>
 
           <button className="vto-close-btn" onClick={closeTryOn} aria-label="Close try-on">
             <X size={22} />
           </button>
         </div>
 
-        <div className="vto-layout">
-          {/* LEFT PANEL: Uploads & Adjustments */}
-          <div className="vto-left-panel">
-            <h3 className="vto-panel-title">Person Selector</h3>
-            <div className="vto-thumbnails">
+        <div className="vto-layout single-panel-layout">
+          {/* SINGLE PANEL: Uploads & Adjustments */}
+          <div className="vto-single-panel">
+            <h2 className="vto-panel-title">Try it on your body</h2>
+            <p className="vto-subtitle" style={{ fontSize: '14px', opacity: 0.8, marginBottom: '20px' }}>Use your saved profile photo or upload a body photo. The result will appear directly in your product gallery.</p>
+
+            <div className="vto-product-preview-card">
+              <img src={currentProduct.image} alt={currentProduct.name} />
+              <div>
+                <span>{currentProduct.brand}</span>
+                <strong>{currentProduct.name}</strong>
+                <p>
+                  {currentProduct.recommendedSize ? `Size ${currentProduct.recommendedSize}` : 'Selected piece'}
+                  {currentProduct.fitMatch ? ` · ${currentProduct.fitMatch}% fit` : ''}
+                </p>
+              </div>
+            </div>
+            
+            <div className="vto-thumbnails mt-6">
               {studioPhotos.map((photo) => (
                 <div 
                   className={`vto-thumb ${selectedPersonUrl === photo.url ? 'active' : ''}`} 
@@ -202,117 +218,30 @@ const VirtualTryOnModal = () => {
                 <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePersonSelect} hidden />
               </label>
             </div>
+            
             <div className="vto-upload-note mt-6">
-              <strong>{personFile ? personFile.name : 'Ready for generation'}</strong>
-              <span>{selectedPersonUrl.startsWith('blob:') ? 'Using your uploaded photo.' : 'Select a model or upload your own.'}</span>
+              <strong>{personFile ? personFile.name : selectedPersonUrl ? 'Ready for generation' : 'Profile photo required'}</strong>
+              <span>{selectedPersonUrl ? 'Using your photo as the model.' : 'Upload a clear full-body photo to continue.'}</span>
             </div>
+            
             {!isAuthenticated && (
               <div className="vto-auth-prompt mt-4" onClick={() => setIsLoginOpen(true)}>
                 <span>✦</span>
                 <p>Login to use Vertex Try-On</p>
               </div>
             )}
+            
             {error && <p className="vto-error">{error}</p>}
-          </div>
-
-          {/* CENTER: The Experience */}
-          <div className="vto-center-panel">
-            {isGenerating ? (
-              <div className="vto-generating">
-                <div className="vto-spinner"></div>
-                <p>Generating on your body...</p>
-              </div>
-            ) : (
-              <div className="vto-center-content animate-fade-in">
-                <div className="vto-main-visual">
-                  <img 
-                    src={viewMode === 'me' ? (resultImageUrl || selectedPersonUrl) : currentProduct.image} 
-                    alt="Virtual Try On Result" 
-                    className="vto-result-img"
-                  />
-                  <div className="vto-visual-badge">
-                    <span>✦ {activeResult?.fitMatch || currentProduct.fitMatch || 98}% Fit Match</span>
-                  </div>
-                </div>
-
-                <div className="vto-fit-console">
-                  <span className="vto-control-label">View</span>
-                  <div className="vto-toggle">
-                    <button
-                      className={`vto-toggle-btn ${viewMode === 'me' ? 'active' : ''}`}
-                      onClick={() => setViewMode('me')}
-                    >
-                      Result
-                    </button>
-                    <button
-                      className={`vto-toggle-btn ${viewMode === 'model' ? 'active' : ''}`}
-                      onClick={() => setViewMode('model')}
-                    >
-                      Product
-                    </button>
-                  </div>
-                  {activeResult?.model?.includes('gemini-') && (
-                    <p className="vto-refine-note">Identity refined with Gemini image editing.</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT PANEL: Product & Actions */}
-          <div className="vto-right-panel">
-            <h3 className="vto-panel-title">Clothes Selector</h3>
             
-            <div className="vto-clothes-selector mb-6">
-              <div className="vto-current-clothes-card">
-                <img src={currentProduct.image} alt={currentProduct.name} />
-                <div className="vto-current-info">
-                  <span className="vto-brand">{currentProduct.brand}</span>
-                  <h2 className="vto-product-name-sm">{currentProduct.name}</h2>
-                  <div className="vto-price-sm">₹{currentProduct.price.toLocaleString()}</div>
-                </div>
-              </div>
-              
-              <div className="vto-clothes-grid mt-4">
-                {allProducts.slice(0, 4).map(prod => (
-                  <div 
-                    key={prod.id} 
-                    className={`vto-clothing-thumb ${currentProduct.id === prod.id ? 'active' : ''}`}
-                    onClick={() => {
-                      selectProduct(prod);
-                      setResult(null);
-                    }}
-                  >
-                    <img src={prod.image} alt={prod.name} />
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="vto-size-box mt-6">
-              <span className="vto-size-label">AI Recommended Size</span>
-              <div className="vto-size-value">
-                <span>{currentProduct.recommendedSize || '2XL'}</span>
-              </div>
-            </div>
-
             <div className="vto-actions mt-8">
               <button className="btn btn-luxury-primary w-full" onClick={handleGenerate} disabled={isGenerating}>
                 <WandSparkles size={16} />
                 {isGenerating ? 'Generating...' : 'Generate try-on'}
               </button>
-              <Link
-                className="btn btn-luxury-outline w-full mt-3"
-                style={{ borderColor: 'var(--border)', color: 'var(--on-surface)' }}
-                to={`/product/${currentProduct.id}`}
-                onClick={closeTryOn}
-              >
-                View product
-              </Link>
             </div>
             
             <p className="vto-disclaimer mt-6">
-              *The Virtual Atelier uses AI to simulate fabric drape based on your measurements. Actual fit may vary slightly.
+              *The Virtual Atelier uses AI to simulate fabric drape on your uploaded photo. Actual fit may vary slightly.
             </p>
           </div>
         </div>
@@ -382,10 +311,6 @@ const VirtualTryOnModal = () => {
 
               <div className="vto-login-footer mt-6">
                 <p>New to BELOV? <Link to="/auth?mode=register" onClick={closeTryOn}>Create account</Link></p>
-                <div className="vto-login-nav mt-4">
-                  <Link to="/" onClick={closeTryOn}>Back to Home</Link>
-                  <Link to="/collections" onClick={closeTryOn}>Marketplace</Link>
-                </div>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, Search, SlidersHorizontal, Store, X } from 'luc
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
 import Footer from '../components/Footer';
-import { filters as fallbackFilters, filterLabels, marketplaceBrands as fallbackBrands, products as fallbackProducts } from '../data/products';
+import { filterLabels } from '../lib/constants';
 import { catalogApi } from '../lib/api';
 import './Collections.css';
 
@@ -55,9 +55,9 @@ const Collections = () => {
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [loading, setLoading] = useState(true);
   const [minimizedFilters, setMinimizedFilters] = useState({});
-  const [catalogProducts, setCatalogProducts] = useState(fallbackProducts);
-  const [brands, setBrands] = useState(fallbackBrands);
-  const [apiFilters, setApiFilters] = useState(fallbackFilters);
+  const [catalogProducts, setCatalogProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [apiFilters, setApiFilters] = useState({});
   const products = catalogProducts;
   const marketplaceBrands = brands;
   const filters = apiFilters;
@@ -73,14 +73,14 @@ const Collections = () => {
     Promise.resolve().then(() => setLoading(true));
     Promise.all([catalogApi.products(serverParams), catalogApi.brands({ search: brandQuery }), catalogApi.filters()])
       .then(([productResponse, brandResponse, filterResponse]) => {
-        setCatalogProducts(productResponse.products || fallbackProducts);
-        setBrands(brandResponse.brands || fallbackBrands);
-        setApiFilters({ ...fallbackFilters, ...filterResponse });
+        setCatalogProducts(productResponse.products || []);
+        setBrands(brandResponse.brands || []);
+        setApiFilters({ ...filterResponse });
       })
       .catch(() => {
-        setCatalogProducts(fallbackProducts);
-        setBrands(fallbackBrands);
-        setApiFilters(fallbackFilters);
+        setCatalogProducts([]);
+        setBrands([]);
+        setApiFilters({});
       })
       .finally(() => setLoading(false));
   }, [activeFilters, brandQuery]);
@@ -113,7 +113,7 @@ const Collections = () => {
 
   const isActive = (category, value) => (activeFilters[category] || []).includes(value);
 
-  const filteredProducts = (products.length ? products : fallbackProducts).filter((product) => (
+  const filteredProducts = products.filter((product) => (
     Object.entries(activeFilters).every(([category, values]) => {
       if (!values.length) return true;
       const productValues = getProductValues(product, category);
@@ -130,14 +130,14 @@ const Collections = () => {
     return 0;
   });
 
-  const selectedOccasionProducts = (products.length ? products : fallbackProducts)
+  const selectedOccasionProducts = products
     .filter(product => product.occasion === selectedOccasion)
     .sort((a, b) => b.fitMatch - a.fitMatch);
 
-  const bestFitProduct = selectedOccasionProducts[0] || products[0] || fallbackProducts[0];
+  const bestFitProduct = selectedOccasionProducts[0] || products[0] || null;
   const bestValueProduct = [...selectedOccasionProducts].sort((a, b) => a.price - b.price)[0] || bestFitProduct;
 
-  const brandRecommendations = (marketplaceBrands.length ? marketplaceBrands : fallbackBrands)
+  const brandRecommendations = marketplaceBrands
     .map((brand) => {
       const brandProducts = products.filter(product => product.brand === brand.name);
       const occasionProducts = brandProducts.filter(product => product.occasion === selectedOccasion);
@@ -166,12 +166,12 @@ const Collections = () => {
     values.map(value => `${filterLabels[category] || category}: ${value}`)
   ));
 
-  const topBrand = brandRecommendations[0] || fallbackBrands[0];
+  const topBrand = brandRecommendations[0] || null;
   const signalCards = [
-    { label: 'Fit', value: bestFitProduct.brand, meta: `${bestFitProduct.fitMatch}%`, to: `/product/${bestFitProduct.id}` },
-    { label: 'Value', value: bestValueProduct.brand, meta: `₹${bestValueProduct.price.toLocaleString('en-IN')}`, to: `/product/${bestValueProduct.id}` },
-    { label: 'Brand', value: topBrand.name, meta: `${Math.min(topBrand.score || topBrand.fitScore, 99)}%`, to: `/brands/${topBrand.id}` }
-  ];
+    bestFitProduct && { label: 'Fit', value: bestFitProduct.brand, meta: `${bestFitProduct.fitMatch}%`, to: `/product/${bestFitProduct.id}` },
+    bestValueProduct && { label: 'Value', value: bestValueProduct.brand, meta: `₹${bestValueProduct.price.toLocaleString('en-IN')}`, to: `/product/${bestValueProduct.id}` },
+    topBrand && { label: 'Brand', value: topBrand.name, meta: `${Math.min(topBrand.score || topBrand.fitScore, 99)}%`, to: `/brands/${topBrand.id}` }
+  ].filter(Boolean);
 
   return (
     <div className="collections-page technique-page">

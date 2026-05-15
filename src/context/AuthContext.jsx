@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { authApi, clearToken, getToken, setToken } from '../lib/api';
 import { AuthContext } from './auth-context';
+import { useNotifications } from './useNotifications';
 
 export const AuthProvider = ({ children }) => {
+  const { notify } = useNotifications();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(Boolean(getToken()));
 
@@ -27,19 +29,36 @@ export const AuthProvider = ({ children }) => {
     return () => { active = false; };
   }, []);
 
-  const requestOtp = (payload) => authApi.requestOtp(payload);
+  const requestOtp = useCallback(async (payload) => {
+    const response = await authApi.requestOtp(payload);
+    notify({
+      variant: 'info',
+      title: 'OTP sent',
+      message: `Check ${payload.channel === 'phone' ? 'your mobile' : 'your email'} to continue.`
+    });
+    return response;
+  }, [notify]);
 
-  const verifyOtp = async (payload) => {
+  const verifyOtp = useCallback(async (payload) => {
     const response = await authApi.verifyOtp(payload);
     setToken(response.accessToken);
     setUser(response.user);
+    notify({
+      title: payload.purpose === 'register' ? 'Account created' : 'Logged in',
+      message: 'Your fit profile is active.'
+    });
     return response;
-  };
+  }, [notify]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     clearToken();
     setUser(null);
-  };
+    notify({
+      variant: 'info',
+      title: 'Logged out',
+      message: 'Your session has ended.'
+    });
+  }, [notify]);
 
   const value = useMemo(() => ({
     user,
@@ -48,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     requestOtp,
     verifyOtp,
     logout
-  }), [user, loading]);
+  }), [user, loading, requestOtp, verifyOtp, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

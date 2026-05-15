@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PageTagline from '../components/PageTagline';
 import { useCart } from '../context/useCart';
 import { useAuth } from '../context/useAuth';
+import { useNotifications } from '../context/useNotifications';
 import { orderApi } from '../lib/api';
 import './Checkout.css';
 
@@ -14,6 +15,7 @@ const Checkout = () => {
   const [error, setError] = useState('');
   const { items: cartItems, summary, refreshCart } = useCart();
   const { user, isAuthenticated } = useAuth();
+  const { notify } = useNotifications();
   const [form, setForm] = useState({
     firstName: user?.name?.split(' ')[0] || '',
     lastName: user?.name?.split(' ').slice(1).join(' ') || '',
@@ -49,6 +51,11 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     if (!isAuthenticated) {
+      notify({
+        variant: 'info',
+        title: 'Login required',
+        message: 'Login to place your order.'
+      });
       navigate('/auth?mode=login');
       return;
     }
@@ -62,9 +69,18 @@ const Checkout = () => {
         paymentMethod: payment
       });
       await refreshCart();
+      notify({
+        title: 'Order confirmed',
+        message: `Order #${order.orderId} is ready to track.`
+      });
       navigate(`/order-confirmation/${order.orderId}`, { state: { order } });
     } catch (err) {
       setError(err.message);
+      notify({
+        variant: 'error',
+        title: 'Checkout needs attention',
+        message: err.message
+      });
     } finally {
       setPlacingOrder(false);
     }
@@ -209,18 +225,23 @@ const Checkout = () => {
             <aside className="checkout-sidebar">
               <div className="checkout-sidebar-inner p-6">
                 <h3 className="title-sm mb-6">Your Selection</h3>
-                {cartItems.map(item => (
-                  <div key={item.id} className="checkout-item flex gap-4 mb-4">
-                    <div className="checkout-item-img">
+                {cartItems.map((item) => {
+                  const productPath = `/product/${item.productId || item.id}`;
+                  return (
+                  <div key={item.cartItemId || `${item.id}-${item.selectedSize}-${item.selectedColor || item.color}`} className="checkout-item flex gap-4 mb-4">
+                    <Link to={productPath} className="checkout-item-img" aria-label={`Open ${item.name}`}>
                       <img src={item.image} alt={item.name} />
-                    </div>
+                    </Link>
                     <div className="flex-1">
-                      <p className="body-sm" style={{ fontWeight: 500 }}>{item.name}</p>
-                      <p className="body-sm text-muted">Size: {item.selectedSize} · {item.color}</p>
+                      <Link to={productPath} className="checkout-item-link">
+                        {item.name}
+                      </Link>
+                      <p className="body-sm text-muted">Size: {item.selectedSize} · Color: {item.selectedColor || item.color}</p>
                       <p className="body-sm mt-1">₹{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <hr className="divider" style={{ margin: 'var(--space-4) 0' }} />
                 <div className="flex justify-between mb-2">
                   <span className="body-sm text-muted">Subtotal</span>

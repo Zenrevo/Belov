@@ -72,6 +72,11 @@ export const profileApi = {
     const formData = new FormData();
     formData.append('file', file);
     return apiRequest('/profile/photos', { method: 'POST', body: formData });
+  },
+  analyzeSkinTone: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiRequest('/profile/skin-tone', { method: 'POST', body: formData });
   }
 };
 
@@ -90,10 +95,14 @@ export const catalogApi = {
   },
   brand: (id) => apiRequest(`/brands/${encodeURIComponent(id)}`),
   filters: () => apiRequest('/filters'),
+  categories: () => apiRequest('/categories'),
   recommendations: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/recommendations${query ? `?${query}` : ''}`);
-  }
+  },
+  recommendationChoice: (payload) => (
+    apiRequest('/recommendations/choices', { method: 'POST', body: payload })
+  )
 };
 
 export const sellerApi = {
@@ -104,7 +113,7 @@ export const tryOnApi = {
   create: ({ productId, personImage, productImage, numberOfImages = 1 }) => {
     const formData = new FormData();
     formData.append('productId', productId);
-    formData.append('personImage', personImage);
+    if (personImage) formData.append('personImage', personImage);
     if (productImage) formData.append('productImage', productImage);
     formData.append('numberOfImages', numberOfImages);
     return apiRequest('/try-on/sessions', { method: 'POST', body: formData });

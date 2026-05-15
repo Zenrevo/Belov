@@ -4,7 +4,6 @@ import { ArrowLeft, Ruler, Shirt, Sparkles, Star, Store } from 'lucide-react';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
-import { marketplaceBrands as fallbackBrands, products as fallbackProducts } from '../data/products';
 import { catalogApi } from '../lib/api';
 import './BrandProfile.css';
 
@@ -21,41 +20,13 @@ const getInitials = (name = '') => (
     .toUpperCase()
 );
 
-const slugify = (value = '') => (
-  value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-);
-
-const buildFallbackBrand = (brandId) => {
-  const brand = fallbackBrands.find((item) => item.id === brandId || slugify(item.name) === brandId) || fallbackBrands[0];
-  const products = fallbackProducts.filter((product) => product.brand === brand.name);
-  const prices = products.map((product) => product.price);
-  const ratings = products.map((product) => product.rating).filter(Boolean);
-
-  return {
-    ...brand,
-    rating: ratings.length ? Number((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1)) : 0,
-    reviewCount: products.reduce((sum, product) => sum + (product.reviews || 0), 0),
-    productTotal: products.length,
-    categories: [...new Set(products.map((product) => product.category))],
-    subcategories: [...new Set(products.map((product) => product.subcategory))],
-    genders: [...new Set(products.map((product) => product.gender))],
-    occasions: [...new Set(products.map((product) => product.occasion))],
-    collections: [...new Set(products.map((product) => product.collection))],
-    availableSizes: [...new Set(products.flatMap((product) => product.sizes || []))],
-    priceRange: {
-      min: prices.length ? Math.min(...prices) : 0,
-      max: prices.length ? Math.max(...prices) : 0
-    },
-    bestProduct: [...products].sort((a, b) => b.fitMatch - a.fitMatch)[0],
-    products
-  };
-};
-
 const BrandProfile = () => {
   const { brandId } = useParams();
-  const [brand, setBrand] = useState(() => buildFallbackBrand(brandId));
+  const [brand, setBrand] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
+  const products = Array.isArray(brand?.products) ? brand.products : [];
+  const categoryOptions = useMemo(() => ['All', ...(brand?.subcategories || brand?.categories || [])], [brand]);
 
   useEffect(() => {
     let active = true;
@@ -70,7 +41,7 @@ const BrandProfile = () => {
       })
       .catch(() => {
         if (!active) return;
-        setBrand(buildFallbackBrand(brandId));
+        setBrand(null);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -79,8 +50,10 @@ const BrandProfile = () => {
     return () => { active = false; };
   }, [brandId]);
 
-  const products = Array.isArray(brand.products) ? brand.products : [];
-  const categoryOptions = useMemo(() => ['All', ...(brand.subcategories || brand.categories || [])], [brand]);
+  if (!brand) {
+    return <div className="brand-profile-page" style={{ paddingTop: 100 }}><div className="container">Loading brand...</div></div>;
+  }
+
   const visibleProducts = selectedCategory === 'All'
     ? products
     : products.filter((product) => product.subcategory === selectedCategory || product.category === selectedCategory);

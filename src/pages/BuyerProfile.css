@@ -162,6 +162,98 @@
 
 .order-list { display: flex; flex-direction: column; gap: var(--space-4); }
 
+.profile-order-products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profile-order-products a {
+  padding: 4px 9px;
+  border: 1px solid rgba(184, 147, 75, 0.22);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.profile-order-products a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.profile-recommendations {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.recommendation-band {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.recommendation-band-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.recommendation-band-head h3 {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.recommendation-band-head p {
+  margin-top: 4px;
+  color: var(--on-surface-variant);
+  font-size: 0.85rem;
+}
+
+.recommendation-band-head span {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recommendation-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.recommendation-product {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.recommendation-change-btn {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--on-surface-variant);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease-out);
+}
+
+.recommendation-change-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: white;
+}
+
 .order-item {
   background: rgba(255, 255, 255, 0.6) !important;
   backdrop-filter: blur(12px);
@@ -172,4 +264,14 @@
 
 @media (max-width: 1024px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .recommendation-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .recommendation-band-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .recommendation-product-grid { grid-template-columns: 1fr; }
 }

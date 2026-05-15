@@ -33,6 +33,15 @@
 }
 .cart-item-image img { width: 100%; height: 100%; object-fit: cover; }
 
+.cart-item-title-link {
+  color: var(--on-surface);
+  text-decoration: none;
+}
+
+.cart-item-title-link:hover {
+  color: var(--accent);
+}
+
 .qty-control {
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-full);

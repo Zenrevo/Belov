@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cartApi } from '../lib/api';
-import { products } from '../data/products';
 import { useAuth } from './useAuth';
 import { CartContext } from './cart-context';
+import { useNotifications } from './useNotifications';
 
-const guestItems = [
-  { ...products[0], cartItemId: 'guest-1', productId: products[0].id, quantity: 1, selectedSize: '2XL', lineTotal: products[0].price },
-  { ...products[1], cartItemId: 'guest-2', productId: products[1].id, quantity: 1, selectedSize: '3XL', lineTotal: products[1].price },
-];
+const guestItems = [];
 
 const getSummary = (items) => {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -15,8 +12,18 @@ const getSummary = (items) => {
   return { subtotal, shipping, total: subtotal + shipping, count: items.reduce((sum, item) => sum + item.quantity, 0) };
 };
 
+const cartToastMessage = (product, selectedSize, selectedColor, quantity) => (
+  [
+    product?.name,
+    selectedSize ? `Size ${selectedSize}` : null,
+    selectedColor ? `Color ${selectedColor}` : null,
+    `Qty ${quantity}`
+  ].filter(Boolean).join(' · ')
+);
+
 export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
+  const { notify } = useNotifications();
   const [items, setItems] = useState(guestItems);
   const [summary, setSummary] = useState(getSummary(guestItems));
   const [loading, setLoading] = useState(false);
@@ -44,20 +51,52 @@ export const CartProvider = ({ children }) => {
     Promise.resolve().then(refreshCart).catch(() => {});
   }, [refreshCart]);
 
-  const addToCart = useCallback(async (product, selectedSize, quantity = 1) => {
+  const addToCart = useCallback(async (product, selectedSize, quantity = 1, selectedColor = product.color) => {
+    const color = selectedColor || product.color || '';
     if (!isAuthenticated) {
       setItems((prev) => {
-        const existing = prev.find((item) => item.id === product.id && item.selectedSize === selectedSize);
+        const existing = prev.find((item) => (
+          item.id === product.id
+          && item.selectedSize === selectedSize
+          && (item.selectedColor || item.color) === color
+        ));
         const next = existing
           ? prev.map((item) => item === existing ? { ...item, quantity: item.quantity + quantity } : item)
-          : [...prev, { ...product, cartItemId: `guest-${product.id}-${selectedSize}`, productId: product.id, selectedSize, quantity }];
+          : [
+              ...prev,
+              {
+                ...product,
+                cartItemId: `guest-${product.id}-${selectedSize}-${color}`,
+                productId: product.id,
+                selectedSize,
+                selectedColor: color,
+                quantity
+              }
+            ];
         setSummary(getSummary(next));
         return next;
       });
+      notify({
+        title: 'Added to bag',
+        message: cartToastMessage(product, selectedSize, color, quantity)
+      });
       return;
     }
-    applyCart(await cartApi.add({ productId: product.id, selectedSize, quantity }));
-  }, [isAuthenticated]);
+    try {
+      applyCart(await cartApi.add({ productId: product.id, selectedSize, selectedColor: color, quantity }));
+      notify({
+        title: 'Added to bag',
+        message: cartToastMessage(product, selectedSize, color, quantity)
+      });
+    } catch (err) {
+      notify({
+        variant: 'error',
+        title: 'Could not add to bag',
+        message: err.message
+      });
+      throw err;
+    }
+  }, [isAuthenticated, notify]);
 
   const updateQuantity = useCallback(async (item, quantity) => {
     if (!isAuthenticated) {
@@ -66,10 +105,29 @@ export const CartProvider = ({ children }) => {
         setSummary(getSummary(next));
         return next;
       });
+      notify({
+        variant: 'info',
+        title: 'Bag updated',
+        message: `${item.name} · Qty ${quantity}`
+      });
       return;
     }
-    applyCart(await cartApi.update(item.cartItemId, { quantity }));
-  }, [isAuthenticated]);
+    try {
+      applyCart(await cartApi.update(item.cartItemId, { quantity }));
+      notify({
+        variant: 'info',
+        title: 'Bag updated',
+        message: `${item.name} · Qty ${quantity}`
+      });
+    } catch (err) {
+      notify({
+        variant: 'error',
+        title: 'Could not update bag',
+        message: err.message
+      });
+      throw err;
+    }
+  }, [isAuthenticated, notify]);
 
   const removeItem = useCallback(async (item) => {
     if (!isAuthenticated) {
@@ -78,10 +136,29 @@ export const CartProvider = ({ children }) => {
         setSummary(getSummary(next));
         return next;
       });
+      notify({
+        variant: 'info',
+        title: 'Removed from bag',
+        message: item.name
+      });
       return;
     }
-    applyCart(await cartApi.remove(item.cartItemId));
-  }, [isAuthenticated]);
+    try {
+      applyCart(await cartApi.remove(item.cartItemId));
+      notify({
+        variant: 'info',
+        title: 'Removed from bag',
+        message: item.name
+      });
+    } catch (err) {
+      notify({
+        variant: 'error',
+        title: 'Could not remove item',
+        message: err.message
+      });
+      throw err;
+    }
+  }, [isAuthenticated, notify]);
 
   const value = useMemo(() => ({
     items,

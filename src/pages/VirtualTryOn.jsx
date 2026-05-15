@@ -5,28 +5,28 @@ import Footer from '../components/Footer';
 import FitPromiseStrip from '../components/FitPromiseStrip';
 import PageTagline from '../components/PageTagline';
 import { useAuth } from '../context/useAuth';
-import { products as fallbackProducts } from '../data/products';
 import { apiAssetUrl, catalogApi, tryOnApi } from '../lib/api';
 import './VirtualTryOn.css';
 
 const VirtualTryOn = () => {
   const { isAuthenticated } = useAuth();
-  const [products, setProducts] = useState(fallbackProducts);
-  const [selectedProductId, setSelectedProductId] = useState(fallbackProducts[0]?.id || 1);
+  const [products, setProducts] = useState([]);
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [personFile, setPersonFile] = useState(null);
   const [personPreview, setPersonPreview] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
+  const [previewMode, setPreviewMode] = useState('product');
   const [error, setError] = useState('');
 
   useEffect(() => {
     catalogApi.products()
       .then((response) => {
-        const rows = response.products?.length ? response.products : fallbackProducts;
+        const rows = response.products || [];
         setProducts(rows);
-        setSelectedProductId(rows[0]?.id || 1);
+        if (rows.length) setSelectedProductId(rows[0].id);
       })
-      .catch(() => setProducts(fallbackProducts));
+      .catch(() => setProducts([]));
   }, []);
 
   useEffect(() => () => {
@@ -34,9 +34,14 @@ const VirtualTryOn = () => {
   }, [personPreview]);
 
   const selectedProduct = useMemo(() => (
-    products.find((product) => product.id === Number(selectedProductId)) || products[0] || fallbackProducts[0]
+    products.find((product) => product.id === Number(selectedProductId)) || products[0] || null
   ), [products, selectedProductId]);
   const resultImage = apiAssetUrl(result?.resultImageUrl);
+  const activePreviewImage = previewMode === 'result'
+    ? resultImage
+    : previewMode === 'body'
+      ? personPreview
+      : selectedProduct?.image;
 
   const handlePersonSelect = (event) => {
     const file = event.target.files?.[0];
@@ -44,6 +49,7 @@ const VirtualTryOn = () => {
     if (personPreview.startsWith('blob:')) URL.revokeObjectURL(personPreview);
     setPersonFile(file);
     setPersonPreview(URL.createObjectURL(file));
+    setPreviewMode('body');
     setResult(null);
     setError('');
   };
@@ -57,6 +63,10 @@ const VirtualTryOn = () => {
       setError('Upload a body photo before generating.');
       return;
     }
+    if (!selectedProduct) {
+      setError('Select a product before generating.');
+      return;
+    }
 
     setError('');
     setIsProcessing(true);
@@ -67,6 +77,7 @@ const VirtualTryOn = () => {
         numberOfImages: 1
       });
       setResult(response);
+      setPreviewMode('result');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -92,6 +103,7 @@ const VirtualTryOn = () => {
                   value={selectedProductId}
                   onChange={(event) => {
                     setSelectedProductId(event.target.value);
+                    setPreviewMode('product');
                     setResult(null);
                   }}
                 >
@@ -99,13 +111,50 @@ const VirtualTryOn = () => {
                     <option key={product.id} value={product.id}>{product.brand} · {product.name}</option>
                   ))}
                 </select>
-                <div className="studio-thumbnails">
-                  <div className="studio-thumb active"><img src={personPreview || (selectedProduct?.gender === 'Men' ? '/images/plus_size_shirt_1777572022906.png' : '/images/hero.png')} alt="Angle 1" /></div>
-                  <div className="studio-thumb"><img src={selectedProduct.image} alt={selectedProduct.name} /></div>
+                  <div className="studio-thumbnails">
+                    <button
+                      type="button"
+                      className={`studio-thumb ${previewMode === 'body' ? 'active' : ''}`}
+                      onClick={() => personPreview && setPreviewMode('body')}
+                    >
+                      <img src={personPreview || "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80"} alt="Selected body" />
+                    </button>
+                    <button
+                      type="button"
+                      className={`studio-thumb ${previewMode === 'product' ? 'active' : ''}`}
+                      onClick={() => setPreviewMode('product')}
+                    >
+                      <img src={selectedProduct?.image || "https://images.unsplash.com/photo-1523381235312-da596d221f22?w=800&q=80"} alt={selectedProduct?.name || 'Selected product'} />
+                    </button>
                   <label className="studio-thumb add">
                     <Upload size={22} />
                     <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePersonSelect} hidden />
                   </label>
+                </div>
+                <div className="tryon-preview-tabs" aria-label="Preview mode">
+                  <button
+                    type="button"
+                    className={previewMode === 'product' ? 'active' : ''}
+                    onClick={() => setPreviewMode('product')}
+                  >
+                    Product
+                  </button>
+                  <button
+                    type="button"
+                    className={previewMode === 'body' ? 'active' : ''}
+                    disabled={!personPreview}
+                    onClick={() => setPreviewMode('body')}
+                  >
+                    Body
+                  </button>
+                  <button
+                    type="button"
+                    className={previewMode === 'result' ? 'active' : ''}
+                    disabled={!resultImage}
+                    onClick={() => setPreviewMode('result')}
+                  >
+                    Result
+                  </button>
                 </div>
                 <button className="btn btn-luxury-primary w-full mt-6" onClick={handleGenerate} disabled={isProcessing}>
                   <WandSparkles size={16} />
@@ -124,18 +173,26 @@ const VirtualTryOn = () => {
                     </div>
                   ) : resultImage ? (
                     <>
-                      <img src={resultImage} alt="Try-On" className="visualization-img" />
-                      <div className="visualization-badge">✦ {result?.fitMatch || selectedProduct.fitMatch}% Fit Certainty</div>
+                      <img src={activePreviewImage} alt={previewMode === 'product' ? selectedProduct?.name : previewMode === 'body' ? 'Selected body' : 'Try-on result'} className="visualization-img" />
+                      <div className="visualization-badge">
+                        {previewMode === 'result'
+                          ? `✦ ${result?.fitMatch || selectedProduct.fitMatch}% Fit Certainty`
+                          : previewMode === 'product'
+                            ? selectedProduct?.name
+                            : 'Body photo'}
+                      </div>
                     </>
-                  ) : personPreview ? (
+                  ) : activePreviewImage ? (
                     <>
-                      <img src={personPreview} alt="Selected body" className="visualization-img" />
-                      <div className="visualization-badge">{selectedProduct.name}</div>
+                      <img src={activePreviewImage} alt={previewMode === 'product' ? selectedProduct?.name : 'Selected body'} className="visualization-img" />
+                      <div className="visualization-badge">
+                        {previewMode === 'product' ? selectedProduct?.name : 'Body photo'}
+                      </div>
                     </>
                   ) : (
                     <div className="visualization-placeholder">
                       <Sparkles size={48} className="text-muted opacity-20" />
-                      <p className="mt-4">Select a photo to start the session</p>
+                      <p className="mt-4">Select a product and photo to start the session</p>
                     </div>
                   )}
                 </div>
@@ -144,18 +201,24 @@ const VirtualTryOn = () => {
               {/* Controls */}
               <div className="tryon-controls-card">
                 <h3 className="label-caps mb-4">Selected piece</h3>
-                <div className="tryon-product-summary">
-                  <img src={selectedProduct.image} alt={selectedProduct.name} />
-                  <div>
-                    <span>{selectedProduct.brand}</span>
-                    <strong>{selectedProduct.name}</strong>
-                    <p>Size {selectedProduct.recommendedSize} · {selectedProduct.fitMatch}% fit</p>
-                  </div>
-                </div>
-                <div className="mt-8">
-                  <Link to={`/product/${selectedProduct.id}`} className="btn btn-luxury-outline w-full mb-3">View product</Link>
-                  <Link to="/collections" className="btn btn-luxury-primary w-full">Explore more</Link>
-                </div>
+                {selectedProduct ? (
+                  <>
+                    <div className="tryon-product-summary">
+                      <img src={selectedProduct.image} alt={selectedProduct.name} />
+                      <div>
+                        <span>{selectedProduct.brand}</span>
+                        <strong>{selectedProduct.name}</strong>
+                        <p>Size {selectedProduct.recommendedSize} · {selectedProduct.fitMatch}% fit</p>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <Link to={`/product/${selectedProduct.id}`} className="btn btn-luxury-outline w-full mb-3">View product</Link>
+                      <Link to="/collections" className="btn btn-luxury-primary w-full">Explore more</Link>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-muted text-sm">Select a product to view details</p>
+                )}
               </div>
             </div>
         </div>

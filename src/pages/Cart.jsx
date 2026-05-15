@@ -34,7 +34,7 @@ const Cart = () => {
               {/* Cart Items */}
               <div className="cart-items">
                 {cartItems.map(item => (
-                  <div key={item.id} className="cart-item flex gap-6">
+                  <div key={item.cartItemId || `${item.id}-${item.selectedSize}-${item.selectedColor || item.color}`} className="cart-item flex gap-6">
                     <Link to={`/product/${item.id}`} className="cart-item-image">
                       <img src={item.image} alt={item.name} />
                     </Link>
@@ -42,8 +42,10 @@ const Cart = () => {
                       <div className="flex justify-between">
                         <div>
                           <span className="label-caps-sm text-muted">{item.brand}</span>
-                          <h3 className="title-sm mt-1" style={{ fontSize: '1rem' }}>{item.name}</h3>
-                          <p className="body-sm text-muted mt-1">Size: {item.selectedSize} · Color: {item.color}</p>
+                          <Link to={`/product/${item.id}`} className="cart-item-title-link">
+                            <h3 className="title-sm mt-1" style={{ fontSize: '1rem' }}>{item.name}</h3>
+                          </Link>
+                          <p className="body-sm text-muted mt-1">Size: {item.selectedSize} · Color: {item.selectedColor || item.color}</p>
                           {item.fitMatch && <p className="body-sm text-accent mt-1">{item.fitMatch}% Fit Match · {item.gender}</p>}
                         </div>
                         <button className="btn-ghost text-silver" onClick={() => removeItem(item)}>

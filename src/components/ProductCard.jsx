@@ -8,6 +8,9 @@ const ProductCard = ({ product }) => {
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+  const insight = product.recommendationReason
+    || product.sizeRecommendationReason
+    || (product.recommendedSize ? `Recommended size ${product.recommendedSize} from your fit profile` : 'Fit-ranked from the live catalog');
 
   return (
     <div className="product-card" id={`product-${product.id}`}>
@@ -22,8 +25,8 @@ const ProductCard = ({ product }) => {
         {/* Quick actions on hover */}
         <div className="product-card-actions">
           <div className="ai-insight-overlay">
-            <span className="text-[10px] font-bold tracking-tighter opacity-70">AI JUSTIFICATION</span>
-            <p className="text-[11px] leading-tight font-medium mt-1">Drapes perfectly on athletic frames</p>
+            <span className="text-[10px] font-bold tracking-tighter opacity-70">MATCH REASON</span>
+            <p className="text-[11px] leading-tight font-medium mt-1">{insight}</p>
           </div>
           <button 
             className="btn btn-sm try-on-quick" 
@@ -60,6 +63,9 @@ const ProductCard = ({ product }) => {
         )}
         {product.sizes && (
           <p className="product-card-sizes">Sizes: {product.sizes.join(', ')}</p>
+        )}
+        {product.recommendedSize && (
+          <p className="product-card-reco-size">Recommended: {product.recommendedSize}</p>
         )}
       </Link>
     </div>
