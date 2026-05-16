@@ -15,7 +15,8 @@ export const apiRequest = async (path, options = {}) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL.replace(/\/$/, '')}${path}`;
+  const response = await fetch(url, {
     ...options,
     headers,
     body: options.body && !isFormData && typeof options.body !== 'string'
