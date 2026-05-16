@@ -4,7 +4,7 @@ import { ChevronDown, Compass, Heart, Home, Search, ShoppingBag, Sparkles, User,
 import { useAuth } from '../context/useAuth';
 import { useCart } from '../context/useCart';
 import { categoryMenu } from '../lib/constants';
-import { catalogApi } from '../lib/api';
+import { catalogApi, profileApi } from '../lib/api';
 import { buildSearchSuggestions } from '../lib/searchSuggestions';
 import './Navbar.css';
 
@@ -32,6 +32,28 @@ const Navbar = () => {
   const { isAuthenticated } = useAuth();
   const { summary } = useCart();
   const cartCount = summary?.count || 0;
+  const [tryOnCredits, setTryOnCredits] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setTryOnCredits(null);
+      return undefined;
+    }
+
+    let active = true;
+    profileApi.get()
+      .then((response) => {
+        if (!active) return;
+        const used = Number(response?.tryOn?.used ?? 0);
+        const limit = Number(response?.tryOn?.limit ?? 10);
+        setTryOnCredits({ used, limit, remaining: Math.max(0, limit - used) });
+      })
+      .catch(() => {
+        if (active) setTryOnCredits(null);
+      });
+
+    return () => { active = false; };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -231,13 +253,15 @@ const Navbar = () => {
           </form>
 
           <div className="nav-right flex items-center gap-6">
-            <div className="nav-credits-wallet desktop-only">
-              <Sparkles size={14} aria-hidden="true" />
-              <div className="credits-info">
-                <span className="credits-count">8/10</span>
-                <span className="credits-label">Free Try-Ons</span>
-              </div>
-            </div>
+            {isAuthenticated && tryOnCredits && (
+              <Link to="/profile" className="nav-credits-wallet desktop-only" aria-label="Try-on credits">
+                <Sparkles size={14} aria-hidden="true" />
+                <div className="credits-info">
+                  <span className="credits-count">{tryOnCredits.remaining}/{tryOnCredits.limit}</span>
+                  <span className="credits-label">Free Try-Ons</span>
+                </div>
+              </Link>
+            )}
             
             <button type="button" className="nav-icon-btn nav-search-icon desktop-only" id="nav-search" aria-label="Search" onClick={handleSearchIconClick}>
               <Search size={20} aria-hidden="true" />
