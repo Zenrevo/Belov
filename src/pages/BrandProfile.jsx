@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Ruler, Shirt, Sparkles, Star, Store } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Ruler, Shirt, Sparkles, Star, Store } from 'lucide-react';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
@@ -58,6 +58,10 @@ const BrandProfile = () => {
     ? products
     : products.filter((product) => product.subcategory === selectedCategory || product.category === selectedCategory);
   const heroImage = brand.bestProduct?.image || brand.image;
+  const vendorStore = brand.vendorStore;
+  const brandStory = vendorStore?.description
+    || brand.tags?.slice(0, 3).join(' · ')
+    || 'Curated marketplace brand with fit-ranked products and plus-size grading.';
 
   return (
     <div className="brand-profile-page">
@@ -71,10 +75,18 @@ const BrandProfile = () => {
             <div className="brand-profile-mark">{getInitials(brand.name)}</div>
             <span className="label-caps text-accent">{brand.specialty} house</span>
             <h1>{brand.name}</h1>
-            <p>
-              {brand.tags?.slice(0, 3).join(' · ') || 'Curated marketplace brand'} with fit-ranked products,
-              live category coverage and plus-size grading signals.
-            </p>
+            {brand.isVerifiedSeller && (
+              <span className="brand-verified-badge">
+                <BadgeCheck size={16} /> Verified BELOV seller
+              </span>
+            )}
+            <p>{brandStory}</p>
+            {vendorStore && (
+              <p className="brand-seller-meta">
+                Sold by <strong>{vendorStore.displayName || vendorStore.storeName}</strong>
+                {vendorStore.city ? ` · Ships from ${vendorStore.city}, ${vendorStore.state}` : ''}
+              </p>
+            )}
           </div>
 
           <div className="brand-profile-visual">

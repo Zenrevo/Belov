@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import './Footer.css';
 
+const VENDOR_PORTAL_URL = import.meta.env.VITE_VENDOR_PORTAL_URL || 'http://localhost:5175';
+
 const Footer = () => {
   return (
     <footer className="footer">
@@ -28,7 +30,8 @@ const Footer = () => {
               <li><Link to="/collections">Collections</Link></li>
               <li><Link to="/try-on">Virtual Try-On</Link></li>
               <li><Link to="/onboarding">Fit Profile</Link></li>
-              <li><Link to="/seller">Seller Hub</Link></li>
+              <li><a href={VENDOR_PORTAL_URL} target="_blank" rel="noreferrer">Sell on BELOV</a></li>
+              <li><Link to="/seller">Seller metrics (demo)</Link></li>
             </ul>
           </div>
           <div className="footer-col">

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const TOKEN_KEY = import.meta.env.VITE_AUTH_TOKEN_KEY || 'belov_access_token';
 const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
@@ -16,13 +16,20 @@ export const apiRequest = async (path, options = {}) => {
   };
 
   const url = `${API_BASE_URL.replace(/\/$/, '')}${path}`;
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    body: options.body && !isFormData && typeof options.body !== 'string'
-      ? JSON.stringify(options.body)
-      : options.body
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      body: options.body && !isFormData && typeof options.body !== 'string'
+        ? JSON.stringify(options.body)
+        : options.body
+    });
+  } catch {
+    throw new Error(
+      'Cannot reach the API. Start the backend (uvicorn on port 8000) and reload this page.'
+    );
+  }
 
   const text = await response.text();
   let data;

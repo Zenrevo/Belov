@@ -175,7 +175,7 @@ const Home = () => {
               {heroBrands.map((brand, index) => (
                 <Link
                   key={brand.id}
-                  to={`/collections?brand=${encodeURIComponent(brand.name)}`}
+                  to={`/brands/${brand.id}`}
                   className={`home-brand-chip ${index < 3 ? 'featured' : ''}`}
                 >
                   <span>{getInitials(brand.name)}</span>
